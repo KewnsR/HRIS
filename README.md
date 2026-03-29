@@ -1,6 +1,10 @@
 # Human Resource Information System (HRIS)
 
-This project is an **HRIS (Human Resource Information System)** built using **ASP.NET MVC** and **SQL Server**. The database is hosted on **Somee**.
+This project is an **HRIS (Human Resource Information System)** built using **ASP.NET MVC** and **Entity Framework Core**.
+
+Default local setup:
+- App host: `http://localhost:5080`
+- Database: SQLite file `HumanRepProj.db`
 
 ---
 
