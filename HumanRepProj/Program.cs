@@ -4,6 +4,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.ML.OnnxRuntime;
 using HumanRepProj.Data;
 using HumanRepProj.HealthChecks;
+using HumanRepProj.Models;
 using HumanRepProj.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,12 +47,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
-            sqlOptions.CommandTimeout(60);
-        });
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 // Health checks
@@ -83,13 +79,13 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 else
 {
     app.UseDeveloperExceptionPage();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();     // ✅ Serves static files (e.g., ONNX models in `wwwroot/`)
 app.UseRouting();         // ✅ Routes HTTP requests to endpoints
 app.UseCors("DevelopmentCors");
@@ -102,18 +98,28 @@ app.MapControllers();
 app.MapRazorPages();
 app.MapGet("/", () => Results.Redirect("/Login"));
 
-// Verify database connection
-try
-{
-    await VerifyDatabaseConnection(app.Services, app.Logger);
-}
-catch (Exception ex)
-{
-    app.Logger.LogCritical(ex, "Database verification failed");
-    throw;
-}
+// Ensure database exists and then verify connectivity during startup.
+await EnsureDatabaseCreated(app.Services, app.Logger);
+await ResetAccountsAndCreateAdmin(app.Services, app.Logger);
+await VerifyDatabaseConnection(app.Services, app.Logger);
 
 await app.RunAsync();
+
+async Task EnsureDatabaseCreated(IServiceProvider services, ILogger logger)
+{
+    using var scope = services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        logger.LogInformation("Ensuring local database exists...");
+        await dbContext.Database.EnsureCreatedAsync();
+        logger.LogInformation("Database is ready");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to initialize database");
+    }
+}
 
 async Task VerifyDatabaseConnection(IServiceProvider services, ILogger logger)
 {
@@ -133,7 +139,83 @@ async Task VerifyDatabaseConnection(IServiceProvider services, ILogger logger)
     }
     catch (Exception ex)
     {
-        logger.LogCritical(ex, "Database verification failed");
-        throw;
+        logger.LogError(ex, "Database verification failed");
+    }
+}
+
+async Task ResetAccountsAndCreateAdmin(IServiceProvider services, ILogger logger)
+{
+    using var scope = services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    try
+    {
+        logger.LogInformation("Resetting existing application accounts...");
+
+        var existingUsers = await dbContext.ApplicationUsers.ToListAsync();
+        if (existingUsers.Count > 0)
+        {
+            dbContext.ApplicationUsers.RemoveRange(existingUsers);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var adminDepartment = await dbContext.Departments.FirstOrDefaultAsync(d => d.Name == "Administration");
+        if (adminDepartment == null)
+        {
+            adminDepartment = new Department
+            {
+                Name = "Administration",
+                Description = "System administration department",
+                Performance = 100,
+                Budget = 0,
+                Status = "Active",
+                DateCreated = DateTime.UtcNow
+            };
+
+            dbContext.Departments.Add(adminDepartment);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var adminEmployee = await dbContext.Employees.FirstOrDefaultAsync(e => e.Email == "admin@hris.local");
+        if (adminEmployee == null)
+        {
+            adminEmployee = new Employee
+            {
+                FirstName = "System",
+                LastName = "Admin",
+                Email = "admin@hris.local",
+                PhoneNumber = null,
+                Address = "Local",
+                DateOfBirth = new DateTime(1990, 1, 1),
+                Gender = "Other",
+                DepartmentID = adminDepartment.DepartmentID,
+                Position = "Administrator",
+                Salary = 0,
+                DateHired = DateTime.UtcNow.Date,
+                EmploymentType = "Full-time",
+                Status = "Active",
+                IsManager = true
+            };
+
+            dbContext.Employees.Add(adminEmployee);
+            await dbContext.SaveChangesAsync();
+        }
+
+        dbContext.ApplicationUsers.Add(new ApplicationUser
+        {
+            EmployeeID = adminEmployee.EmployeeID,
+            Username = "admin",
+            Password = "admin@123",
+            LastLogin = null,
+            FailedAttempts = 0,
+            IsLocked = false
+        });
+
+        await dbContext.SaveChangesAsync();
+        logger.LogInformation("Admin account is ready. Username: admin");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to reset accounts and create admin user");
     }
 }

@@ -1,6 +1,5 @@
 ﻿@{
-    // ✅ Valid: Assigning values to variables
-    var currentPath = Context.Request.Path.Value.ToLower();
+    var currentPath = (Context.Request.Path.Value ?? string.Empty).ToLower();
     var hideSidebar = currentPath.Contains("/user") || currentPath.Contains("/attendance/recordattendance");
 
 }
@@ -24,195 +23,46 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     @RenderSection("Styles", required: false)
-
-    <style>
-        /* Fixed sidebar styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            width: 250px;
-            background-color: #212529;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-            width: calc(100% - 250px);
-        }
-
-        /* Sidebar menu styles */
-        .menu {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            padding: 20px 0;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-        }
-
-            .menu-item:hover {
-                color: white;
-                background-color: rgba(255, 255, 255, 0.1);
-            }
-
-            .menu-item.active {
-                color: white;
-                background-color: rgba(13, 110, 253, 0.2);
-                border-left: 4px solid #0d6efd;
-            }
-
-            .menu-item i {
-                margin-right: 10px;
-                width: 20px;
-                text-align: center;
-            }
-
-        /* ✅ Logout Button */
-        .logout-button {
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 10px;
-            width: 100%;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
-            border-radius: 4px;
-            transition: background 0.3s ease;
-            margin-top: auto;
-            margin-bottom: -30px;
-        }
-
-            .logout-button:hover {
-                background-color: #cc0000;
-            }
-
-        /* ✅ Popup Overlay */
-        .popup-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            align-items: center;
-            justify-content: center;
-            z-index: 999;
-        }
-
-        .popup-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            width: 300px;
-            text-align: center;
-        }
-
-        .popup-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-confirm, .btn-cancel {
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            border-radius: 4px;
-            transition: background 0.3s ease;
-        }
-
-        .btn-confirm {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-            .btn-confirm:hover {
-                background-color: #45a049;
-            }
-
-        .btn-cancel {
-            background-color: #ff4d4d;
-            color: white;
-        }
-
-            .btn-cancel:hover {
-                background-color: #cc0000;
-            }
-
-        /* Button highlight styles */
-        .btn:focus, .btn:active {
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.5);
-            transform: translateY(1px);
-        }
-
-        /* Responsive adjustments */
-        @@media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-
-            .main-content {
-                margin-left: 0;
-                width: 100%;
-            }
-        }
-    </style>
 </head>
 <body>
     @Html.AntiForgeryToken()
+
     @if (!hideSidebar)
     {
-    <!-- Fixed Sidebar -->
-    <aside class="sidebar">
+        <button type="button" class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+            <i class="fas fa-bars"></i>
+        </button>
+    }
+
+    @if (!hideSidebar)
+    {
+    <aside id="mainSidebar" class="sidebar">
         <div class="px-3 py-4 d-flex flex-column h-100">
             <h2 class="text-white mb-4">HRIS</h2>
             <nav class="menu flex-grow-1">
-                <a href="/Dashboard" class="menu-item" id="dashboard-btn">
+                <a href="/Dashboard" class="menu-item @(currentPath.Contains("/dashboard") ? "active" : "")">
                     <i class="fas fa-home"></i> Dashboard
                 </a>
-                <a href="/Employees" class="menu-item" id="employees-btn">
+                <a href="/Employees" class="menu-item @(currentPath.Contains("/employees") ? "active" : "")">
                     <i class="fas fa-users"></i> Employees
                 </a>
-                <a href="/Departments" class="menu-item" id="departments-btn">
+                <a href="/Departments" class="menu-item @(currentPath.Contains("/departments") ? "active" : "")">
                     <i class="fas fa-building"></i> Departments
                 </a>
-                <a href="/Attendance" class="menu-item" id="attendance-btn">
+                <a href="/Attendance" class="menu-item @(currentPath.Contains("/attendance") ? "active" : "")">
                     <i class="fas fa-clock"></i> Attendance
                 </a>
-                <a href="/Leave" class="menu-item" id="leave-btn">
+                <a href="/Leave" class="menu-item @(currentPath.Contains("/leave") ? "active" : "")">
                     <i class="fas fa-calendar-alt"></i> Leave
                 </a>
-                <a href="/Loans" class="menu-item" id="loans-btn">
+                <a href="/Loans" class="menu-item @(currentPath.Contains("/loans") ? "active" : "")">
                     <i class="fas fa-hand-holding-usd"></i> Loans
                 </a>
-                <a href="/Settings" class="menu-item" id="settings-btn">
+                <a href="/Settings" class="menu-item @(currentPath.Contains("/settings") ? "active" : "")">
                     <i class="fas fa-cogs"></i> Settings
                 </a>
             </nav>
 
-            <!-- Logout Button -->
             <button type="button" class="logout-button mt-auto" onclick="openLogoutPopup()">
                 <i class="fas fa-sign-out-alt"></i>
                 <span class="logout-text">Logout</span>
@@ -221,12 +71,10 @@
     </aside>
     }
 
-    <!-- Main Content -->
-    <main class="main-content">
+    <main class="main-content @(hideSidebar ? "full-width" : string.Empty)">
         @RenderBody()
     </main>
 
-    <!-- ✅ Logout Confirmation Popup -->
     <div id="logoutPopup" class="popup-overlay">
         <div class="popup-content">
             <p>Are you sure you want to log out?</p>
@@ -239,72 +87,41 @@
         </div>
     </div>
 
-    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     @RenderSection("Scripts", required: false)
 
     <script>
-        // Function to handle logout popup
-            function openLogoutPopup() {
+        function openLogoutPopup() {
             document.getElementById('logoutPopup').style.display = 'flex';
+            document.body.classList.add('logout-open');
         }
 
         function closeLogoutPopup() {
             document.getElementById('logoutPopup').style.display = 'none';
+            document.body.classList.remove('logout-open');
         }
 
-        // Highlight active menu item based on current page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get current path
-            const currentPath = window.location.pathname.toLowerCase();
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            if (!sidebar) return;
+            sidebar.classList.toggle('open');
+        }
 
-            // Remove active class from all menu items
-            const menuItems = document.querySelectorAll('.menu-item');
-            menuItems.forEach(item => {
-                item.classList.remove('active');
-            });
+        document.addEventListener('click', function (event) {
+            const sidebar = document.getElementById('mainSidebar');
+            const toggleBtn = document.querySelector('.mobile-menu-toggle');
 
-            // Find and highlight the current page's menu item
-            let activeItem = null;
+            if (!sidebar || !toggleBtn) return;
 
-            if (currentPath.includes('/dashboard')) {
-                activeItem = document.getElementById('dashboard-btn');
-            } else if (currentPath.includes('/employees')) {
-                activeItem = document.getElementById('employees-btn');
-            } else if (currentPath.includes('/departments')) {
-                activeItem = document.getElementById('departments-btn');
-            } else if (currentPath.includes('/attendance')) {
-                activeItem = document.getElementById('attendance-btn');
-            } else if (currentPath.includes('/leave')) {
-                activeItem = document.getElementById('leave-btn');
-            } else if (currentPath.includes('/loans')) {
-                activeItem = document.getElementById('loans-btn');
-            } else if (currentPath.includes('/reports')) {
-                activeItem = document.getElementById('reports-btn');
-            } else if (currentPath.includes('/payroll')) {
-                activeItem = document.getElementById('payroll-btn');
-            } else if (currentPath.includes('/settings')) {
-                activeItem = document.getElementById('settings-btn');
+            if (window.innerWidth > 991) return;
+
+            const clickInsideSidebar = sidebar.contains(event.target);
+            const clickOnToggle = toggleBtn.contains(event.target);
+
+            if (!clickInsideSidebar && !clickOnToggle) {
+                sidebar.classList.remove('open');
             }
-
-            if (activeItem) {
-                activeItem.classList.add('active');
-            }
-
-            // Button click effects
-            const buttons = document.querySelectorAll('.btn');
-            buttons.forEach(button => {
-                button.addEventListener('mousedown', function() {
-                    this.style.transform = 'translateY(1px)';
-                });
-                button.addEventListener('mouseup', function() {
-                    this.style.transform = '';
-                });
-                button.addEventListener('mouseleave', function() {
-                    this.style.transform = '';
-                });
-            });
         });
     </script>
 </body>

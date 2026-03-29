@@ -7,10 +7,33 @@
 
 @section Styles {
     <style>
-        .settings-header {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
+        .settings-page {
+            width: 100%;
+        }
+
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 1rem;
+            align-items: start;
+            width: 100%;
+        }
+
+        .settings-nav-card {
+            position: sticky;
+            top: 1rem;
+        }
+
+        .settings-nav-card .nav-link {
+            border-radius: 0;
+            padding: 0.75rem 1rem;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .settings-nav-card .nav-link.active {
+            background-color: #1d4ed8;
+            color: #fff;
         }
 
         .profile-avatar {
@@ -32,15 +55,29 @@
             padding: 0.5rem;
         }
 
-        .nav-pills .nav-link.active {
-            background-color: #0d6efd;
+        .settings-content .tab-pane {
+            min-width: 0;
+        }
+
+        .settings-content .card {
+            width: 100%;
+        }
+
+        @@media (max-width: 991px) {
+            .settings-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-nav-card {
+                position: static;
+            }
         }
     </style>
 }
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="card sticky-top">
+<div class="settings-page">
+    <div class="settings-layout">
+        <div class="card settings-nav-card">
             <div class="card-header bg-white">
                 <h5 class="mb-0">Settings Menu</h5>
             </div>
@@ -69,10 +106,8 @@
                 </ul>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-9">
-        <div class="tab-content">
+        <div class="tab-content settings-content">
             <!-- Profile Section -->
             <div class="tab-pane fade show active" id="profile-tab">
                 <div class="card mb-4">
@@ -305,91 +340,45 @@
                 </div>
             </div>
         </div>
-    </div> 
-</div>   
+    </div>
+</div>
 
-            @section Scripts {
-                <script>
-                        document.addEventListener("DOMContentLoaded", () => {
-                        const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                        const tzSelect = document.getElementById("timezone");
-                        if (tzSelect) {
-                            for (let opt of tzSelect.options) {
-                                if (opt.value === detectedTz) {
-                                    opt.selected = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        const currencyMap = {
-                            "en-PH": "PHP",
-                            "fil-PH": "PHP",
-                            "en-US": "USD",
-                            "en-GB": "GBP",
-                            "ja-JP": "JPY",
-                            "de-DE": "EUR"
-                        };
-                        const userLang = navigator.language || navigator.userLanguage;
-                        const currency = currencyMap[userLang] || "PHP";
-                        const currencySelect = document.getElementById("currency");
-                        if (currencySelect) {
-                            for (let opt of currencySelect.options) {
-                                if (opt.value === currency) {
-                                    opt.selected = true;
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                        const userLocale = navigator.language;
-                        const defaultCurrency = localeCurrencyMap[userLocale] || "USD";
-
-                        if (currencySelect) {
-                            for (let option of currencySelect.options) {
-                                if (option.value === defaultCurrency) {
-                                    option.selected = true;
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                                     window.addEventListener('DOMContentLoaded', () => {
-                        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                        const tzSelect = document.getElementById("timezone");
-                        if (tzSelect) {
-                            for (let option of tzSelect.options) {
-                                if (option.value === timezone) {
-                                    option.selected = true;
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                                     window.addEventListener('DOMContentLoaded', () => {
-                        const currencyMap = {
-                            'en-PH': 'PHP',
-                            'fil-PH': 'PHP',
-                            'en-US': 'USD',
-                            'en-GB': 'GBP',
-                            'ja-JP': 'JPY',
-                            'de-DE': 'EUR'
-                            // ➕ Add more mappings as needed
-                        };
-
-                        const userLang = navigator.language || navigator.userLanguage;
-                        const detectedCurrency = currencyMap[userLang] || 'PHP'; // Default to PHP
-
-                        const currencySelect = document.getElementById("currency");
-                        if (currencySelect) {
-                            for (let option of currencySelect.options) {
-                                if (option.value === detectedCurrency) {
-                                    option.selected = true;
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                </script>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const tzSelect = document.getElementById('timezone');
+            if (tzSelect) {
+                for (let option of tzSelect.options) {
+                    if (option.value === timezone) {
+                        option.selected = true;
+                        break;
+                    }
+                }
             }
+
+            const currencyMap = {
+                'en-PH': 'PHP',
+                'fil-PH': 'PHP',
+                'en-US': 'USD',
+                'en-GB': 'GBP',
+                'ja-JP': 'JPY',
+                'de-DE': 'EUR'
+            };
+
+            const userLang = navigator.language || navigator.userLanguage;
+            const detectedCurrency = currencyMap[userLang] || 'PHP';
+            const currencySelect = document.getElementById('currency');
+
+            if (currencySelect) {
+                for (let option of currencySelect.options) {
+                    if (option.value === detectedCurrency) {
+                        option.selected = true;
+                        break;
+                    }
+                }
+            }
+        });
+    </script>
+}
 
