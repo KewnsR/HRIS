@@ -1,6 +1,7 @@
 ﻿@{
     var currentPath = (Context.Request.Path.Value ?? string.Empty).ToLower();
     var hideSidebar = currentPath.Contains("/user") || currentPath.Contains("/attendance/recordattendance");
+    var fullBleedPage = currentPath.Contains("/settings");
 
 }
 <!DOCTYPE html>
@@ -71,7 +72,7 @@
     </aside>
     }
 
-    <main class="main-content @(hideSidebar ? "full-width" : string.Empty)">
+    <main class="main-content @(hideSidebar ? "full-width" : string.Empty) @(fullBleedPage ? "edge-to-edge" : string.Empty)">
         @RenderBody()
     </main>
 

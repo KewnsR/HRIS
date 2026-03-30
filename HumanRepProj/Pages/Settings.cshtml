@@ -9,14 +9,17 @@
     <style>
         .settings-page {
             width: 100%;
+            min-height: 100vh;
         }
 
         .settings-layout {
             display: grid;
             grid-template-columns: 300px minmax(0, 1fr);
             gap: 1rem;
-            align-items: start;
+            align-items: stretch;
             width: 100%;
+            min-height: 100vh;
+            padding: 1rem;
         }
 
         .settings-nav-card {
@@ -57,19 +60,27 @@
 
         .settings-content .tab-pane {
             min-width: 0;
+            min-height: 100%;
         }
 
         .settings-content .card {
             width: 100%;
+            margin-bottom: 0;
+            min-height: calc(100vh - 2rem);
         }
 
         @@media (max-width: 991px) {
             .settings-layout {
                 grid-template-columns: 1fr;
+                min-height: auto;
             }
 
             .settings-nav-card {
                 position: static;
+            }
+
+            .settings-content .card {
+                min-height: auto;
             }
         }
     </style>
