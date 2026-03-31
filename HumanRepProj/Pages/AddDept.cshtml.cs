@@ -52,6 +52,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnGetAsync()
         {
+            Input ??= new InputModel
+            {
+                DateCreated = DateTime.Today,
+                Status = "Active"
+            };
+
             // Get all employees who could be managers
             var employees = await _context.Employees
                 .Where(e => e.Status == "Active")
@@ -71,9 +77,33 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            Input ??= new InputModel();
+            Input.Name = (Input.Name ?? string.Empty).Trim();
+            Input.Status = string.IsNullOrWhiteSpace(Input.Status) ? "Active" : Input.Status.Trim();
+
+            if (Input.DateCreated == default)
+            {
+                Input.DateCreated = DateTime.Today;
+            }
+
+            if (string.IsNullOrWhiteSpace(Input.Name))
+            {
+                ModelState.AddModelError("Input.Name", "Department name is required.");
+            }
+
             if (!ModelState.IsValid)
             {
                 // Reload the manager list if validation fails
+                await OnGetAsync();
+                return Page();
+            }
+
+            var duplicateNameExists = await _context.Departments
+                .AnyAsync(d => d.Name != null && d.Name.ToLower() == Input.Name.ToLower());
+
+            if (duplicateNameExists)
+            {
+                ModelState.AddModelError("Input.Name", "A department with this name already exists.");
                 await OnGetAsync();
                 return Page();
             }
@@ -89,8 +119,17 @@ namespace HumanRepProj.Pages
                 ManagerID = Input.ManagerID
             };
 
-            _context.Departments.Add(department);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Departments.Add(department);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Could not save the department. Please verify the values and try again.");
+                await OnGetAsync();
+                return Page();
+            }
 
             TempData["SuccessMessage"] = "Department created successfully.";
             return RedirectToPage("/Departments");

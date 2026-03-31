@@ -235,6 +235,14 @@
             <p>Please fill in your information to register</p>
         </div>
         <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>@Model.ErrorMessage</span>
+                </div>
+            }
+
             @if (ViewData.ModelState.ErrorCount > 0)
             {
                 <div class="alert alert-danger" role="alert">
@@ -245,42 +253,114 @@
 
             <form method="post">
                 <div class="form-group">
-                    <label for="fullname">Full Name</label>
-                    <input type="text" id="fullname" name="FullName" class="form-control" placeholder="Enter your full name" required />
-                    <span asp-validation-for="FullName" class="error-message"></span>
+                    <label asp-for="Input.FirstName">First Name</label>
+                    <input asp-for="Input.FirstName" class="form-control" placeholder="Enter first name" required />
+                    <span asp-validation-for="Input.FirstName" class="error-message"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="Email" class="form-control" placeholder="name@example.com" required />
-                    <span asp-validation-for="Email" class="error-message"></span>
+                    <label asp-for="Input.LastName">Last Name</label>
+                    <input asp-for="Input.LastName" class="form-control" placeholder="Enter last name" required />
+                    <span asp-validation-for="Input.LastName" class="error-message"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="Username" class="form-control" placeholder="Choose a username" required />
-                    <span asp-validation-for="Username" class="error-message"></span>
+                    <label asp-for="Input.Email">Email Address</label>
+                    <input asp-for="Input.Email" type="email" class="form-control" placeholder="name@example.com" required />
+                    <span asp-validation-for="Input.Email" class="error-message"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label asp-for="Input.PhoneNumber">Phone Number</label>
+                    <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Optional" />
+                    <span asp-validation-for="Input.PhoneNumber" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.Address">Address</label>
+                    <input asp-for="Input.Address" class="form-control" placeholder="Optional" />
+                    <span asp-validation-for="Input.Address" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.DateOfBirth">Date of Birth</label>
+                    <input asp-for="Input.DateOfBirth" type="date" class="form-control" required />
+                    <span asp-validation-for="Input.DateOfBirth" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.Gender">Gender</label>
+                    <select asp-for="Input.Gender" class="form-control" required>
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <span asp-validation-for="Input.Gender" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.DepartmentID">Department</label>
+                    <select asp-for="Input.DepartmentID" asp-items="Model.DepartmentOptions" class="form-control" required>
+                        <option value="">Select department</option>
+                    </select>
+                    <span asp-validation-for="Input.DepartmentID" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.Position">Position</label>
+                    <input asp-for="Input.Position" class="form-control" placeholder="e.g. Software Engineer" required />
+                    <span asp-validation-for="Input.Position" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.Salary">Salary</label>
+                    <input asp-for="Input.Salary" type="number" min="0" step="0.01" class="form-control" required />
+                    <span asp-validation-for="Input.Salary" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.DateHired">Date Hired</label>
+                    <input asp-for="Input.DateHired" type="date" class="form-control" required />
+                    <span asp-validation-for="Input.DateHired" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.EmploymentType">Employment Type</label>
+                    <select asp-for="Input.EmploymentType" class="form-control">
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Probationary">Probationary</option>
+                    </select>
+                    <span asp-validation-for="Input.EmploymentType" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.Username">Username</label>
+                    <input asp-for="Input.Username" class="form-control" placeholder="Choose a username" required />
+                    <span asp-validation-for="Input.Username" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Input.Password">Password</label>
                     <div class="password-field">
-                        <input type="password" id="password" name="Password" class="form-control" placeholder="Create a password" required />
+                        <input asp-for="Input.Password" type="password" id="password" class="form-control" placeholder="Create a password" required />
                         <i class="fas fa-eye password-toggle" onclick="togglePasswordVisibility('password')"></i>
                     </div>
                     <div class="password-requirements">
-                        Password must be at least 8 characters with letters, numbers and symbols
+                        Password must be at least 8 characters
                     </div>
-                    <span asp-validation-for="Password" class="error-message"></span>
+                    <span asp-validation-for="Input.Password" class="error-message"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
+                    <label asp-for="Input.ConfirmPassword">Confirm Password</label>
                     <div class="password-field">
-                        <input type="password" id="confirmPassword" name="ConfirmPassword" class="form-control" placeholder="Confirm your password" required />
+                        <input asp-for="Input.ConfirmPassword" type="password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required />
                         <i class="fas fa-eye password-toggle" onclick="togglePasswordVisibility('confirmPassword')"></i>
                     </div>
-                    <span asp-validation-for="ConfirmPassword" class="error-message"></span>
+                    <span asp-validation-for="Input.ConfirmPassword" class="error-message"></span>
                 </div>
 
                 <button type="submit" class="btn-register">
@@ -310,5 +390,6 @@
             }
         }
     </script>
+    <partial name="_ValidationScriptsPartial" />
 </body>
 </html>

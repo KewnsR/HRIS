@@ -122,6 +122,12 @@ namespace HumanRepProj.Pages
                 await LoadPotentialManagers(departmentId.Value);
             }
 
+            Input ??= new DepartmentInputModel
+            {
+                DateCreated = DateTime.Today,
+                Status = "Active"
+            };
+
             return Page();
         }
 
@@ -170,8 +176,32 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnPostCreateAsync()
         {
+            Input ??= new DepartmentInputModel();
+            Input.Name = (Input.Name ?? string.Empty).Trim();
+            Input.Status = string.IsNullOrWhiteSpace(Input.Status) ? "Active" : Input.Status.Trim();
+
+            if (Input.DateCreated == default)
+            {
+                Input.DateCreated = DateTime.Today;
+            }
+
+            if (string.IsNullOrWhiteSpace(Input.Name))
+            {
+                ModelState.AddModelError("Input.Name", "Department name is required.");
+            }
+
             if (!ModelState.IsValid)
             {
+                await LoadDepartments();
+                return Page();
+            }
+
+            var duplicateNameExists = await _context.Departments
+                .AnyAsync(d => d.Name != null && d.Name.ToLower() == Input.Name.ToLower());
+
+            if (duplicateNameExists)
+            {
+                ModelState.AddModelError("Input.Name", "A department with this name already exists.");
                 await LoadDepartments();
                 return Page();
             }
@@ -187,14 +217,25 @@ namespace HumanRepProj.Pages
                 ManagerID = Input.ManagerID
             };
 
-            _context.Departments.Add(department);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Departments.Add(department);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Could not save the department. Please verify the values and try again.");
+                await LoadDepartments();
+                return Page();
+            }
 
             // If a manager was assigned, update their status
             if (Input.ManagerID.HasValue)
             {
                 await UpdateEmployeeManagerStatus(Input.ManagerID.Value, true);
             }
+
+            TempData["SuccessMessage"] = "Department created successfully.";
 
             return RedirectToPage();
         }

@@ -14,3 +14,5 @@ Default local setup:
 ```bash
 git clone https://github.com/KewnsR/3ACS_G2.git
 dotnet restore
+
+project run - dotnet run --project HumanRepProj

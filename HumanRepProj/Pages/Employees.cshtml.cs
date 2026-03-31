@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -116,6 +117,42 @@ namespace HumanRepProj.Pages
             await _context.SaveChangesAsync();
 
             StatusMessage = $"Employee {employee.FullName} has been deleted";
+            return RedirectToPage(new { CurrentPage, SearchTerm });
+        }
+
+        public IActionResult OnPostAddEmployee()
+        {
+            return RedirectToPage("/UserRegister");
+        }
+
+        public async Task<IActionResult> OnPostDeletePlaceholderEmployeesAsync()
+        {
+            var fakeFirstNames = new[] { "john", "jane", "test", "demo", "sample", "dummy" };
+            var fakeLastNames = new[] { "doe", "smith", "user", "employee", "test", "sample" };
+
+            var employeesToDelete = await _context.Employees
+                .Where(e =>
+                    (e.Email != null && (
+                        EF.Functions.Like(e.Email, "%@example.com") ||
+                        EF.Functions.Like(e.Email, "%test%") ||
+                        EF.Functions.Like(e.Email, "%demo%") ||
+                        EF.Functions.Like(e.Email, "%fake%") ||
+                        EF.Functions.Like(e.Email, "%sample%")
+                    )) ||
+                    fakeFirstNames.Contains(e.FirstName.ToLower()) ||
+                    fakeLastNames.Contains(e.LastName.ToLower()))
+                .ToListAsync();
+
+            if (employeesToDelete.Count == 0)
+            {
+                StatusMessage = "No placeholder employees were found.";
+                return RedirectToPage(new { CurrentPage, SearchTerm });
+            }
+
+            _context.Employees.RemoveRange(employeesToDelete);
+            await _context.SaveChangesAsync();
+
+            StatusMessage = $"Removed {employeesToDelete.Count} placeholder employee(s).";
             return RedirectToPage(new { CurrentPage, SearchTerm });
         }
     }

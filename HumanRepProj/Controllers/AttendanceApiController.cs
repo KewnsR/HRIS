@@ -5,6 +5,7 @@ using Microsoft.ML.OnnxRuntime;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Jpeg;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -128,19 +129,78 @@ namespace HumanRepProj.Controllers
 
         private bool CompareFaces(string referenceImageBase64, string testImageBase64)
         {
-            var referenceEmbedding = GetFaceEmbedding(referenceImageBase64);
-            var testEmbedding = GetFaceEmbedding(testImageBase64);
+            var referenceEmbedding = GetFaceEmbedding(referenceImageBase64, cropLargestFace: true);
+            var testEmbedding = GetFaceEmbedding(testImageBase64, cropLargestFace: true);
 
             float similarity = CosineSimilarity(referenceEmbedding, testEmbedding);
-            return similarity > 0.6f;
+            return similarity >= 0.75f;
         }
 
-        private float[] GetFaceEmbedding(string base64Image)
+        private float[]? GetFaceEmbedding(string base64Image, bool cropLargestFace)
         {
             try
             {
                 var imageBytes = Convert.FromBase64String(base64Image.Split(',').Last());
+
+                if (cropLargestFace)
+                {
+                    var croppedFaceBytes = TryCropLargestDetectedFace(imageBytes);
+                    if (croppedFaceBytes != null)
+                    {
+                        imageBytes = croppedFaceBytes;
+                    }
+                }
+
                 return _faceRecognitionService.GetFaceEmbedding(imageBytes); // Use injected service
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private byte[]? TryCropLargestDetectedFace(byte[] imageBytes)
+        {
+            try
+            {
+                using var ms = new MemoryStream(imageBytes);
+                using var image = SixLabors.ImageSharp.Image.Load<Rgb24>(ms);
+
+                var inputTensor = PreprocessImage(image);
+                var inputs = new List<NamedOnnxValue>
+                {
+                    NamedOnnxValue.CreateFromTensor("images", inputTensor)
+                };
+
+                using var results = _faceDetectionService.Session.Run(inputs);
+                var output = results.First().AsTensor<float>();
+                var faces = ParseYoloOutput(output);
+
+                if (faces.Count == 0)
+                    return null;
+
+                var largestFace = faces
+                    .OrderByDescending(f => f.Width * f.Height)
+                    .First();
+
+                var marginX = largestFace.Width * 0.15f;
+                var marginY = largestFace.Height * 0.15f;
+
+                var x = (int)MathF.Max(0, largestFace.X - marginX);
+                var y = (int)MathF.Max(0, largestFace.Y - marginY);
+                var right = (int)MathF.Min(image.Width, largestFace.X + largestFace.Width + marginX);
+                var bottom = (int)MathF.Min(image.Height, largestFace.Y + largestFace.Height + marginY);
+
+                var width = right - x;
+                var height = bottom - y;
+
+                if (width <= 0 || height <= 0)
+                    return null;
+
+                using var faceCrop = image.Clone(ctx => ctx.Crop(new Rectangle(x, y, width, height)));
+                using var outStream = new MemoryStream();
+                faceCrop.Save(outStream, new JpegEncoder());
+                return outStream.ToArray();
             }
             catch
             {
@@ -161,7 +221,11 @@ namespace HumanRepProj.Controllers
                 magB += vectorB[i] * vectorB[i];
             }
 
-            return dot / (float)(Math.Sqrt(magA) * Math.Sqrt(magB));
+            var denominator = (float)(Math.Sqrt(magA) * Math.Sqrt(magB));
+            if (denominator <= 1e-6f)
+                return 0f;
+
+            return dot / denominator;
         }
 
 

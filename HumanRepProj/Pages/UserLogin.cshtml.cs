@@ -1,41 +1,77 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using HumanRepProj.Data;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace HumanRepProj.Pages
 {
     public class UserLoginModel : PageModel
     {
+        private readonly ApplicationDbContext _context;
+
+        public UserLoginModel(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         [BindProperty]
         public LoginInputModel LoginInput { get; set; } = new LoginInputModel();
 
         [TempData]
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
+
+        [TempData]
+        public string? SuccessMessage { get; set; }
 
         public void OnGet()
         {
             ErrorMessage = null;
         }
 
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
             {
                 return Page();
             }
 
-            // Authentication logic - replace with your actual implementation
-            if (LoginInput.Username == "user@email.com" && LoginInput.Password == "pass123")
-            {
-                // Simulate setting a session or authentication token
-                HttpContext.Session.SetString("UserName", LoginInput.Username);
+            var normalizedUsername = LoginInput.Username.Trim().ToLower();
+            var hashedInputPassword = HashPassword(LoginInput.Password);
+            var user = await _context.ApplicationUsers
+                .Include(u => u.Employee)
+                .SingleOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
 
-                // Redirect to UserDashboard after successful login
+            if (user != null && user.Password == hashedInputPassword)
+            {
+                HttpContext.Session.SetString("UserName", user.Username);
+                HttpContext.Session.SetInt32("EmployeeID", user.EmployeeID);
+                HttpContext.Session.SetString("FullName", user.Employee?.FullName ?? user.Username);
+
+                user.LastLogin = System.DateTime.UtcNow;
+                user.FailedAttempts = 0;
+                await _context.SaveChangesAsync();
+
                 return RedirectToPage("/UserDashboard");
+            }
+
+            if (user != null)
+            {
+                user.FailedAttempts += 1;
+                await _context.SaveChangesAsync();
             }
 
             ErrorMessage = "Invalid username or password";
             return Page();
+        }
+
+        private static string HashPassword(string plainTextPassword)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(plainTextPassword));
+            return System.Convert.ToHexString(bytes);
         }
     }
 

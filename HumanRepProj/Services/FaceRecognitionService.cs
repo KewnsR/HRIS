@@ -3,6 +3,7 @@ using Microsoft.ML.OnnxRuntime;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Transforms;
 
 namespace HumanRepProj.Services
 {
@@ -28,7 +29,7 @@ namespace HumanRepProj.Services
 
             using var results = _session.Run(inputs);
             var embedding = results.First().AsTensor<float>().ToArray();
-            return embedding;
+            return NormalizeEmbedding(embedding);
         }
 
         private Tensor<float> PreprocessImageForFaceNet(Image<Rgb24> image)
@@ -37,7 +38,14 @@ namespace HumanRepProj.Services
 
             var resized = image.Clone(
                 Configuration.Default,
-                operations => operations.Resize(targetSize, targetSize)
+                operations => operations.Resize(new ResizeOptions
+                {
+                    Size = new Size(targetSize, targetSize),
+                    Mode = ResizeMode.Pad,
+                    Position = AnchorPositionMode.Center,
+                    Sampler = KnownResamplers.Bicubic,
+                    PadColor = Color.Black
+                })
             );
             var tensor = new DenseTensor<float>(new[] { 1, 3, targetSize, targetSize });
 
@@ -53,6 +61,29 @@ namespace HumanRepProj.Services
             }
 
             return tensor;
+        }
+
+        private static float[] NormalizeEmbedding(float[] embedding)
+        {
+            if (embedding == null || embedding.Length == 0)
+                return Array.Empty<float>();
+
+            double sumSquares = 0;
+            for (int i = 0; i < embedding.Length; i++)
+            {
+                sumSquares += embedding[i] * embedding[i];
+            }
+
+            var magnitude = (float)Math.Sqrt(sumSquares);
+            if (magnitude <= 1e-6f)
+                return embedding;
+
+            for (int i = 0; i < embedding.Length; i++)
+            {
+                embedding[i] /= magnitude;
+            }
+
+            return embedding;
         }
     }
 }

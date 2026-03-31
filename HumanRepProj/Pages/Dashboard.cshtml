@@ -100,17 +100,17 @@
         <h1 class="h2 mb-0">Dashboard Overview</h1>
         <div class="d-flex align-items-center" style="gap: 8px;">
             <!-- Date Range Buttons -->
-            <form method="post" asp-page-handler="ThisWeek">
+            <form method="post" asp-page-handler="ThisWeek" class="dashboard-time-range-form">
                 <button type="submit" class="btn btn-sm time-range-btn @(Model.TimeRange == "week" ? "active" : "btn-outline-secondary")">
                     <i class="bi bi-calendar-week"></i> This Week
                 </button>
             </form>
-            <form method="post" asp-page-handler="ThisMonth">
+            <form method="post" asp-page-handler="ThisMonth" class="dashboard-time-range-form">
                 <button type="submit" class="btn btn-sm time-range-btn @(Model.TimeRange == "month" ? "active" : "btn-outline-secondary")">
                     <i class="bi bi-calendar-month"></i> This Month
                 </button>
             </form>
-            <form method="post" asp-page-handler="6Months">
+            <form method="post" asp-page-handler="6Months" class="dashboard-time-range-form">
                 <button type="submit" class="btn btn-sm time-range-btn @(Model.TimeRange == "6months" ? "active" : "btn-outline-secondary")">
                     <i class="bi bi-calendar-range"></i> 6 Months
                 </button>
@@ -281,8 +281,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeChart();
 
-            // Handle all time range button clicks
-            document.querySelectorAll('form[method="post"]').forEach(form => {
+            // Handle only dashboard time range form submissions
+            document.querySelectorAll('.dashboard-time-range-form').forEach(form => {
                 form.addEventListener('submit', async function(e) {
                     e.preventDefault();
 
@@ -310,6 +310,12 @@
 
                         if (!response.ok) {
                             throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const contentType = response.headers.get('content-type') || '';
+                        if (!contentType.includes('application/json')) {
+                            const rawBody = await response.text();
+                            throw new Error(`Expected JSON but received ${contentType || 'unknown content type'}: ${rawBody.slice(0, 80)}`);
                         }
 
                         const result = await response.json();
