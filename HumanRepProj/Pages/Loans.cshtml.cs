@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using HumanRepProj.Data;
 using System;
 using System.Linq;
+using HumanRepProj.Security;
 
 namespace HumanRepProj.Pages
 {
@@ -24,15 +25,31 @@ namespace HumanRepProj.Pages
         [BindProperty]
         public Loans Loan { get; set; }
 
+        [TempData]
+        public string? Message { get; set; }
+
         public IList<Loans> LoansList { get; set; }
 
-        public async Task OnGetAsync()
+        public async Task<IActionResult> OnGetAsync()
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             await LoadLoansAsync();
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             Loan ??= new Loans();
 
             if (!ModelState.IsValid)
@@ -48,7 +65,72 @@ namespace HumanRepProj.Pages
             _context.Loans.Add(Loan);
             await _context.SaveChangesAsync();
 
+            Message = "Loan request created successfully.";
+
             return RedirectToPage("./Loans"); // Refresh page
+        }
+
+        public async Task<IActionResult> OnPostApproveAsync(int id)
+        {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
+            var loan = await _context.Loans.FirstOrDefaultAsync(l => l.LoanID == id);
+            if (loan != null)
+            {
+                loan.LoanStatus = "Approved";
+                loan.ReviewedBy = AdminSessionGuard.GetUsername(HttpContext) ?? "admin";
+                loan.ReviewedAt = DateTime.UtcNow;
+                loan.DecisionNote = "Approved by admin.";
+                await _context.SaveChangesAsync();
+                Message = "Loan request approved.";
+            }
+
+            return RedirectToPage("./Loans");
+        }
+
+        public async Task<IActionResult> OnPostRejectAsync(int id)
+        {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
+            var loan = await _context.Loans.FirstOrDefaultAsync(l => l.LoanID == id);
+            if (loan != null)
+            {
+                loan.LoanStatus = "Rejected";
+                loan.ReviewedBy = AdminSessionGuard.GetUsername(HttpContext) ?? "admin";
+                loan.ReviewedAt = DateTime.UtcNow;
+                loan.DecisionNote = "Rejected by admin.";
+                await _context.SaveChangesAsync();
+                Message = "Loan request rejected.";
+            }
+
+            return RedirectToPage("./Loans");
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
+            var loan = await _context.Loans.FirstOrDefaultAsync(l => l.LoanID == id);
+            if (loan != null)
+            {
+                _context.Loans.Remove(loan);
+                await _context.SaveChangesAsync();
+                Message = "Loan request deleted.";
+            }
+
+            return RedirectToPage("./Loans");
         }
 
         public async Task<IActionResult> OnPostLogoutAsync()

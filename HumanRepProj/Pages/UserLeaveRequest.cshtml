@@ -15,14 +15,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --primary-light: #eef2ff;
-            --secondary: #64748b;
+            --primary: #0f4c81;
+            --primary-hover: #0c3f6b;
+            --primary-light: #e6f0f9;
+            --secondary: #5f6c82;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --info: #3b82f6;
+            --info: #2563eb;
             --dark: #0f172a;
             --light: #f8fafc;
             --sidebar-width: 280px;
@@ -30,6 +30,7 @@
             --transition: all 0.3s ease;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 14px 40px rgba(15, 23, 42, 0.08);
             --border-radius: 0.5rem;
         }
 
@@ -41,7 +42,7 @@
         }
 
         body {
-            background-color: #f9fafb;
+            background: radial-gradient(circle at 20% 0%, #f5f9ff 0%, #eef2f7 48%, #edf1f8 100%);
             color: #1e293b;
             font-size: 0.875rem;
         }
@@ -181,16 +182,18 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            min-height: 100vh;
         }
 
         /* Top Navigation */
         .top-nav {
             height: var(--header-height);
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(6px);
             box-shadow: var(--shadow);
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: flex-start;
             padding: 0 2rem;
             position: sticky;
             top: 0;
@@ -198,49 +201,63 @@
             border-bottom: 1px solid #e2e8f0;
         }
 
-        .search-bar {
+        .top-nav-left {
             display: flex;
             align-items: center;
-            background: #f1f5f9;
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius);
-            width: 300px;
+            gap: 0.75rem;
         }
 
-            .search-bar input {
-                border: none;
-                outline: none;
-                background: transparent;
-                width: 100%;
-                margin-left: 0.5rem;
-                font-size: 0.875rem;
-            }
+        .section-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid #c7ddf2;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #0f172a;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        
 
         /* Content Container */
         .content-container {
-            width: min(1200px, 100%);
+            width: min(1280px, 100%);
             margin: 0 auto;
-            padding: 1.75rem 2rem 2rem;
+            padding: 2rem 2rem 2.25rem;
             flex-grow: 1;
         }
 
         /* Leave Request Specific Styles */
         .page-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .page-title {
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.015em;
         }
 
         .leave-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+            gap: 1.5rem;
         }
 
         @@media (max-width: 1024px) {
@@ -255,43 +272,46 @@
         .leave-card {
             background: white;
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-sm);
+            padding: 1.75rem;
         }
 
         .section-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.35rem;
             color: var(--dark);
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 0.75rem;
+            border-bottom: none;
         }
 
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.35rem;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
+            margin-bottom: 0.6rem;
+            font-weight: 600;
+            font-size: 0.95rem;
             color: var(--dark);
         }
 
         .form-control, .form-select {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.8rem 1rem;
             border: 1px solid #e2e8f0;
             border-radius: var(--border-radius);
             background-color: #f8fafc;
             transition: var(--transition);
+            font-size: 0.95rem;
         }
 
             .form-control:focus, .form-select:focus {
                 outline: none;
                 border-color: var(--primary);
-                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+                background-color: #ffffff;
+                box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.1);
             }
 
         .date-picker {
@@ -307,116 +327,225 @@
             display: flex;
             justify-content: flex-end;
             gap: 1rem;
-            margin-top: 2rem;
+            margin-top: 2.25rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
         }
 
         .btn {
-            padding: 0.75rem 1.5rem;
+            padding: 0.8rem 1.7rem;
             border-radius: var(--border-radius);
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
             border: none;
+            font-size: 0.95rem;
         }
 
         .btn-primary {
             background-color: var(--primary);
             color: white;
+            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.2);
         }
 
             .btn-primary:hover {
                 background-color: var(--primary-hover);
+                box-shadow: 0 6px 16px rgba(15, 76, 129, 0.3);
+                transform: translateY(-1px);
             }
 
         .btn-outline {
             background-color: transparent;
             color: var(--secondary);
-            border: 1px solid #e2e8f0;
+            border: 1px solid #cbd5e1;
+            font-weight: 600;
         }
 
             .btn-outline:hover {
-                background-color: #f1f5f9;
+                background-color: #f8fafc;
+                border-color: #94a3b8;
             }
 
         /* Leave Balance */
         .leave-balance {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: 0.95rem;
+            margin-bottom: 2rem;
         }
 
         .balance-card {
-            background: #f8fafc;
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
             border-radius: var(--border-radius);
-            padding: 1rem;
+            padding: 1.15rem;
             text-align: center;
             border: 1px solid #e2e8f0;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .balance-card:hover {
+            border-color: #bcd0e5;
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
         }
 
         .balance-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            color: var(--primary);
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+            color: #0f4c81;
         }
 
         .balance-label {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
             color: var(--secondary);
         }
 
         /* Leave History */
         .leave-history {
-            margin-top: 2rem;
+            margin-top: 2.25rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
         }
 
         .history-table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 0.9rem;
         }
 
             .history-table th, .history-table td {
-                padding: 1rem;
+                padding: 0.9rem;
                 text-align: left;
                 border-bottom: 1px solid #e2e8f0;
             }
 
             .history-table th {
-                font-weight: 600;
+                font-weight: 700;
                 color: var(--secondary);
-                font-size: 0.75rem;
+                font-size: 0.8rem;
                 text-transform: uppercase;
-                letter-spacing: 0.05em;
+                letter-spacing: 0.06em;
+                background-color: #f8fafc;
             }
 
+        .history-table tbody tr {
+            transition: var(--transition);
+        }
+
+        .history-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
         .status {
-            padding: 0.25rem 0.75rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
+            font-size: 0.8rem;
+            font-weight: 600;
             display: inline-block;
         }
 
         .status-pending {
             background-color: #fef3c7;
-            color: var(--warning);
+            color: #b45309;
         }
 
         .status-approved {
             background-color: #dcfce7;
-            color: var(--success);
+            color: #15803d;
         }
 
         .status-rejected {
             background-color: #fee2e2;
-            color: var(--danger);
+            color: #b91c1c;
+        }
+
+        .logout-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .logout-popup.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .logout-popup-content {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 320px;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .logout-popup.active .logout-popup-content {
+            transform: translateY(0);
+        }
+
+        .logout-popup-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .logout-popup-body p {
+            margin: 0 0 1.5rem 0;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .logout-popup-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .logout-popup-btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            min-width: 80px;
+        }
+
+        .logout-popup-btn.cancel {
+            background-color: #ff5252;
+            color: white;
+        }
+
+        .logout-popup-btn.cancel:hover {
+            background-color: #ff1a1a;
+        }
+
+        .logout-popup-btn.confirm {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .logout-popup-btn.confirm:hover {
+            background-color: #45a049;
         }
 
         /* Responsive */
         @@media (max-width: 768px) {
             .sidebar
-
         {
             transform: translateX(-100%);
             position: fixed;
@@ -437,15 +566,41 @@
             padding: 0 1rem;
         }
 
+        .sidebar-toggle {
+            display: inline-flex;
+        }
+
+        .section-pill {
+            display: none;
+        }
+
         .content-container {
             padding: 1rem;
         }
 
-        .date-picker {
-            flex-direction: column;
+        .leave-container {
+            grid-template-columns: 1fr;
             gap: 1rem;
         }
 
+        .page-title {
+            font-size: 1.45rem;
+        }
+
+        .date-picker {
+            flex-direction: column;
+        }
+
+        .leave-balance {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        }
+
+        @@media (max-width: 520px) {
+            .leave-balance {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -484,6 +639,12 @@
                         </a>
                     </li>
                     <li>
+                        <a asp-page="/Attendance/RecordAttendance">
+                            <i class="fas fa-clock"></i>
+                            <span>Attendance</span>
+                        </a>
+                    </li>
+                    <li>
                         <a asp-page="/UserLoanRequest">
                             <i class="fas fa-hand-holding-usd"></i>
                             <span>Loan Request</span>
@@ -493,7 +654,7 @@
             </nav>
 
             <div class="sidebar-footer">
-                <a href="/UserLogin?logout=true">
+                <a href="/UserLogin?logout=true" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
@@ -502,14 +663,19 @@
 
         <!-- Main Content -->
         <main class="main-content">
-
+             <!-- Top Navigation Bar -->
+             <header class="top-nav">
+                 <div class="top-nav-left">
+                     <button type="button" class="sidebar-toggle" aria-label="Toggle menu">
+                         <i class="fas fa-bars"></i>
+                     </button>
+                     <span class="section-pill"><i class="fas fa-calendar-alt"></i> Leave Requests</span>
+                 </div>
+             </header>
             <!-- Page Content -->
             <div class="content-container">
                 <div class="page-header">
                     <h1 class="page-title">Request Leave</h1>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-plus"></i> New Request
-                    </button>
                 </div>
 
                 <div class="leave-container">
@@ -517,43 +683,49 @@
                     <div class="leave-card">
                         <h3 class="section-title">Request Leave</h3>
 
-                        <form>
+                        <form method="post" novalidate>
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
                             <div class="form-group">
                                 <label class="form-label">Leave Type</label>
-                                <select class="form-select">
+                                <select class="form-select" asp-for="Input.LeaveType">
                                     <option value="">Select leave type</option>
-                                    <option value="annual">Annual Leave</option>
-                                    <option value="sick">Sick Leave</option>
-                                    <option value="personal">Personal Leave</option>
-                                    <option value="maternity">Maternity Leave</option>
-                                    <option value="paternity">Paternity Leave</option>
+                                    <option value="Annual Leave">Annual Leave</option>
+                                    <option value="Sick Leave">Sick Leave</option>
+                                    <option value="Personal Leave">Personal Leave</option>
+                                    <option value="Maternity Leave">Maternity Leave</option>
+                                    <option value="Paternity Leave">Paternity Leave</option>
                                 </select>
+                                <span asp-validation-for="Input.LeaveType" class="text-danger"></span>
                             </div>
 
                             <div class="date-picker">
                                 <div class="form-group">
                                     <label class="form-label">Start Date</label>
-                                    <input type="text" class="form-control date-input" placeholder="Select date">
+                                    <input type="text" class="form-control date-input" asp-for="Input.StartDate" placeholder="Select date">
+                                    <span asp-validation-for="Input.StartDate" class="text-danger"></span>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">End Date</label>
-                                    <input type="text" class="form-control date-input" placeholder="Select date">
+                                    <input type="text" class="form-control date-input" asp-for="Input.EndDate" placeholder="Select date">
+                                    <span asp-validation-for="Input.EndDate" class="text-danger"></span>
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Duration (Days)</label>
-                                <input type="text" class="form-control" value="5" readonly>
+                                <input type="text" class="form-control" id="durationDays" value="0" readonly>
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Reason</label>
-                                <textarea class="form-control" rows="4" placeholder="Enter reason for leave"></textarea>
+                                <textarea class="form-control" rows="4" asp-for="Input.Reason" placeholder="Enter reason for leave"></textarea>
+                                <span asp-validation-for="Input.Reason" class="text-danger"></span>
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Contact During Leave</label>
-                                <input type="text" class="form-control" placeholder="Phone number">
+                                <input type="text" class="form-control" asp-for="Input.ContactDuringLeave" placeholder="Phone number">
+                                <span asp-validation-for="Input.ContactDuringLeave" class="text-danger"></span>
                             </div>
 
                             <div class="form-actions">
@@ -596,30 +768,31 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>May 15-18, 2025</td>
-                                            <td>Annual Leave</td>
-                                            <td>4</td>
-                                            <td><span class="status status-approved">Approved</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Apr 2-3, 2025</td>
-                                            <td>Sick Leave</td>
-                                            <td>2</td>
-                                            <td><span class="status status-approved">Approved</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Mar 10, 2025</td>
-                                            <td>Personal Leave</td>
-                                            <td>1</td>
-                                            <td><span class="status status-approved">Approved</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Jun 5-9, 2025</td>
-                                            <td>Annual Leave</td>
-                                            <td>5</td>
-                                            <td><span class="status status-pending">Pending</span></td>
-                                        </tr>
+                                        @if (Model.RecentRequests.Any())
+                                        {
+                                            foreach (var item in Model.RecentRequests)
+                                            {
+                                                var days = (item.EndDate.Date - item.StartDate.Date).Days + 1;
+                                                var statusClass = string.Equals(item.Status, "Approved", System.StringComparison.OrdinalIgnoreCase)
+                                                    ? "status-approved"
+                                                    : string.Equals(item.Status, "Rejected", System.StringComparison.OrdinalIgnoreCase)
+                                                        ? "status-rejected"
+                                                        : "status-pending";
+
+                                                <tr>
+                                                    <td>@item.StartDate.ToString("MMM d") - @item.EndDate.ToString("MMM d, yyyy")</td>
+                                                    <td>@item.LeaveType</td>
+                                                    <td>@days</td>
+                                                    <td><span class="status @statusClass">@item.Status</span></td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">No leave requests yet.</td>
+                                            </tr>
+                                        }
                                     </tbody>
                                 </table>
                             </div>
@@ -630,29 +803,68 @@
         </main>
     </div>
 
+    <div id="successPopup" style="display:none;position:fixed;right:20px;bottom:20px;background:#16a34a;color:#fff;padding:12px 16px;border-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,.2);z-index:2000;">
+        <i class="fas fa-check-circle"></i> <span id="successMessageText"></span>
+    </div>
+
+    <div id="logoutPopup" class="logout-popup">
+        <div class="logout-popup-content">
+            <div class="logout-popup-body">
+                <p>Are you sure you want to log out?</p>
+                <div class="logout-popup-buttons">
+                    <button id="confirmLogout" class="logout-popup-btn confirm">Yes</button>
+                    <button id="cancelLogout" class="logout-popup-btn cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         // Mobile sidebar toggle functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const sidebarToggle = document.createElement('button');
-            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
-            sidebarToggle.style.background = 'none';
-            sidebarToggle.style.border = 'none';
-            sidebarToggle.style.fontSize = '1.25rem';
-            sidebarToggle.style.cursor = 'pointer';
+             const sidebar = document.querySelector('.sidebar');
+             const sidebarToggle = document.querySelector('.sidebar-toggle');
+ 
+             if (sidebarToggle && sidebar) {
+                 sidebarToggle.addEventListener('click', function() {
+                     sidebar.classList.toggle('open');
+                 });
+             }
 
-            const topNav = document.querySelector('.top-nav');
-            if (topNav) {
-                const topNavLeft = document.createElement('div');
-                topNavLeft.appendChild(sidebarToggle);
-                topNav.prepend(topNavLeft);
+            const logoutButton = document.getElementById('logoutBtn');
+            const logoutPopup = document.getElementById('logoutPopup');
+            const cancelLogout = document.getElementById('cancelLogout');
+            const confirmLogout = document.getElementById('confirmLogout');
+
+            if (logoutButton && logoutPopup && cancelLogout && confirmLogout) {
+                const logoutUrl = logoutButton.getAttribute('href');
+
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    logoutPopup.classList.add('active');
+                });
+
+                cancelLogout.addEventListener('click', function() {
+                    logoutPopup.classList.remove('active');
+                });
+
+                confirmLogout.addEventListener('click', function() {
+                    window.location.href = logoutUrl;
+                });
+
+                logoutPopup.addEventListener('click', function(e) {
+                    if (e.target === logoutPopup) {
+                        logoutPopup.classList.remove('active');
+                    }
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && logoutPopup.classList.contains('active')) {
+                        logoutPopup.classList.remove('active');
+                    }
+                });
             }
-
-            const sidebar = document.querySelector('.sidebar');
-
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-            });
 
             // Initialize date picker
             flatpickr(".date-input", {
@@ -661,9 +873,9 @@
             });
 
             // Calculate days between dates
-            const startDateInput = document.querySelector('input[placeholder="Select date"]:first-of-type');
-            const endDateInput = document.querySelector('input[placeholder="Select date"]:last-of-type');
-            const daysInput = document.querySelector('input[value="5"]');
+            const startDateInput = document.getElementById('Input_StartDate');
+            const endDateInput = document.getElementById('Input_EndDate');
+            const daysInput = document.getElementById('durationDays');
 
             function calculateDays() {
                 if (startDateInput.value && endDateInput.value) {
@@ -675,9 +887,22 @@
                 }
             }
 
-            startDateInput.addEventListener('change', calculateDays);
-            endDateInput.addEventListener('change', calculateDays);
+            if (startDateInput && endDateInput) {
+                startDateInput.addEventListener('change', calculateDays);
+                endDateInput.addEventListener('change', calculateDays);
+            }
+
+            const successMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SuccessMessage));
+            if (successMessage) {
+                const popup = document.getElementById('successPopup');
+                const text = document.getElementById('successMessageText');
+                text.textContent = successMessage;
+                popup.style.display = 'block';
+                setTimeout(() => popup.style.display = 'none', 3500);
+            }
         });
     </script>
+
+    <partial name="_ValidationScriptsPartial" />
 </body>
 </html>

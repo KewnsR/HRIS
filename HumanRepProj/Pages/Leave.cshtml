@@ -1,5 +1,5 @@
-﻿@page
-@model LeaveModel
+@page
+@model HumanRepProj.Pages.LeaveModel
 @{
     ViewData["Title"] = "Leave Approval";
     Layout = "_Layout";
@@ -7,745 +7,171 @@
 
 @section Styles {
     <style>
-        /* Base Reset */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: #f8fafc;
-        }
-
-        /* Main Layout */
-        .main-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        /* Header */
-        .header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 16px 24px;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
+        .status-pill {
+            display: inline-flex;
             align-items: center;
+            padding: 0.3rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            border: 1px solid transparent;
         }
 
-        .header-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .status-pill.pending {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fcd34d;
         }
 
-        .pending-count {
-            background-color: #f59e0b;
-            color: white;
-            font-size: 0.875rem;
-            padding: 2px 8px;
-            border-radius: 9999px;
+        .status-pill.approved {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #86efac;
         }
 
-        .header-actions {
-            display: flex;
-            gap: 12px;
+        .status-pill.rejected {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fca5a5;
         }
 
-        /* Content Area */
-        .content {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-        }
-
-        /* Filter Card */
-        .filter-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 24px;
-        }
-
-        .filter-form {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        /* Leave Request Card */
-        .request-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 24px;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .search-bar {
-            display: flex;
-            max-width: 300px;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        /* Table styling */
-        .leave-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .leave-table th {
-            background-color: #f9fafb;
-            padding: 12px 16px;
-            text-align: left;
-            font-weight: 600;
-            color: #374151;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .leave-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: middle;
-        }
-
-        .leave-table tbody tr:hover {
-            background-color: #f9fafb;
-        }
-
-        /* Status badges */
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .badge-pending {
-            background-color: #f59e0b;
-            color: white;
-        }
-
-        .badge-approved {
-            background-color: #16a34a;
-            color: white;
-        }
-
-        .badge-rejected {
-            background-color: #dc2626;
-            color: white;
-        }
-
-        .badge-vacation {
-            background-color: #3b82f6;
-            color: white;
-        }
-
-        .badge-sick {
-            background-color: #ef4444;
-            color: white;
-        }
-
-        .badge-personal {
-            background-color: #8b5cf6;
-            color: white;
-        }
-
-        /* Action buttons */
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        /* Employee info */
-        .employee-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .employee-email {
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-            gap: 4px;
-        }
-
-        .page-item {
-            list-style: none;
-        }
-
-        .page-link {
-            padding: 6px 12px;
-            border-radius: 4px;
-            text-decoration: none;
-            border: 1px solid #d1d5db;
-            color: #374151;
-            background-color: white;
-        }
-
-        .page-item.active .page-link {
-            background-color: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
-
-        .page-item.disabled .page-link {
-            color: #9ca3af;
-            pointer-events: none;
-        }
-
-        /* Modal customizations */
-        .modal-content {
-            border-radius: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-header {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 16px 24px;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #e5e7eb;
-            padding: 16px 24px;
-        }
-
-        /* Timeline */
-        .timeline .list-group-item {
-            border-left: 2px solid #e5e7eb;
-            border-radius: 0;
-            padding-left: 20px;
-            position: relative;
-        }
-
-        .timeline .list-group-item:before {
-            content: '';
-            position: absolute;
-            left: -6px;
-            top: 18px;
-            width: 10px;
-            height: 10px;
+        .action-confirm-icon {
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background-color: #3b82f6;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
         }
 
-        /* Responsive */
-         {
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-            }
+        .action-confirm-icon.approve {
+            background: rgba(22, 163, 74, 0.15);
+            color: #15803d;
+        }
 
-            .header-actions {
-                width: 100%;
-                flex-direction: column;
-            }
+        .action-confirm-icon.reject {
+            background: rgba(245, 158, 11, 0.18);
+            color: #b45309;
+        }
 
-            .header-actions .btn {
-                width: 100%;
-            }
-
-            .filter-form {
-                grid-template-columns: 1fr;
-            }
-
-            .action-buttons {
-                flex-wrap: wrap;
-            }
+        .action-confirm-icon.delete {
+            background: rgba(220, 38, 38, 0.15);
+            color: #b91c1c;
         }
     </style>
 }
 
-<div class="main-container">
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="header-title">
-                Leave Approval Dashboard <span class="pending-count">12</span>
-            </div>
-            <div class="header-actions">
-                <a href="/LeaveCalendar" class="btn btn-primary">
-                    <i class="bi bi-calendar-week"></i> Team Calendar View
-                </a>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="reportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-file-earmark-text"></i> Reports
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="reportDropdown">
-                        <li><a class="dropdown-item" href="#">Monthly Summary</a></li>
-                        <li><a class="dropdown-item" href="#">Department Analytics</a></li>
-                        <li><a class="dropdown-item" href="#">Leave Balance Report</a></li>
-                    </ul>
-                </div>
-            </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Leave Approval</h2>
+        <span class="badge text-bg-warning">Pending: @Model.LeaveRequests.Count(r => r.Status == "Pending")</span>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Model.Message
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </header>
+    }
 
-    <!-- Main Content -->
-    <main class="content">
-        @if (!string.IsNullOrEmpty(Model.Message))
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                @Model.Message
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
-
-        <!-- Filter Controls -->
-        <div class="filter-card">
-            <div class="filter-form">
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" id="statusFilter">
-                        <option value="all" selected>All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Leave Type</label>
-                    <select class="form-select" id="typeFilter">
-                        <option value="all" selected>All Types</option>
-                        <option value="vacation">Vacation</option>
-                        <option value="sick">Sick</option>
-                        <option value="personal">Personal</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Department</label>
-                    <select class="form-select" id="departmentFilter">
-                        <option value="all" selected>All Departments</option>
-                        <option value="hr">Human Resources</option>
-                        <option value="it">IT</option>
-                        <option value="sales">Sales</option>
-                        <option value="marketing">Marketing</option>
-                        <option value="finance">Finance</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Date Range</label>
-                    <select class="form-select" id="dateFilter">
-                        <option value="all" selected>All Dates</option>
-                        <option value="thisWeek">This Week</option>
-                        <option value="nextWeek">Next Week</option>
-                        <option value="thisMonth">This Month</option>
-                        <option value="nextMonth">Next Month</option>
-                    </select>
-                </div>
-            </div>
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Employee Leave Requests</h5>
+            <small class="text-muted">Manage approvals and rejections</small>
         </div>
-
-        <!-- Leave Requests Table -->
-        <div class="request-card">
-            <div class="card-header">
-                <h5 class="mb-0">Leave Requests</h5>
-                <div class="search-bar">
-                    <input type="text" class="form-control" placeholder="Search employee name..." id="searchInput">
-                    <button class="btn btn-outline-secondary" type="button">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="table-container">
-                <table class="leave-table">
-                    <thead>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
+                            <th>ID</th>
                             <th>Employee</th>
-                            <th>Department</th>
-                            <th>Leave Type</th>
+                            <th>Type</th>
                             <th>Duration</th>
-                            <th>Dates</th>
                             <th>Reason</th>
-                            <th>Attachment</th>
                             <th>Status</th>
+                            <th>Submitted</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <div class="employee-info">
-                                    <strong>John Smith</strong>
-                                    <span class="employee-email">john.smith@company.com</span>
-                                </div>
-                            </td>
-                            <td>IT Department</td>
-                            <td><span class="badge badge-vacation">Vacation</span></td>
-                            <td>5 days</td>
-                            <td>May 15 - May 19, 2025</td>
-                            <td>Family vacation</td>
-                            <td>
-                                <a href="#" class="text-decoration-none">
-                                    <i class="bi bi-paperclip me-1"></i>View
-                                </a>
-                            </td>
-                            <td><span class="badge badge-pending">Pending</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#approveModal" data-id="1">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal" data-id="1">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailsModal" data-id="1">
-                                        <i class="bi bi-info-lg"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="employee-info">
-                                    <strong>Sarah Johnson</strong>
-                                    <span class="employee-email">sarah.j@company.com</span>
-                                </div>
-                            </td>
-                            <td>HR Department</td>
-                            <td><span class="badge badge-sick">Sick</span></td>
-                            <td>2 days</td>
-                            <td>May 12 - May 13, 2025</td>
-                            <td>Medical appointment and recovery</td>
-                            <td>
-                                <a href="#" class="text-decoration-none">
-                                    <i class="bi bi-paperclip me-1"></i>View
-                                </a>
-                            </td>
-                            <td><span class="badge badge-pending">Pending</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#approveModal" data-id="2">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal" data-id="2">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailsModal" data-id="2">
-                                        <i class="bi bi-info-lg"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="employee-info">
-                                    <strong>Michael Chen</strong>
-                                    <span class="employee-email">michael.c@company.com</span>
-                                </div>
-                            </td>
-                            <td>Finance</td>
-                            <td><span class="badge badge-personal">Personal</span></td>
-                            <td>1 day</td>
-                            <td>May 20, 2025</td>
-                            <td>Family emergency</td>
-                            <td>No attachment</td>
-                            <td><span class="badge badge-approved">Approved</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailsModal" data-id="3">
-                                        <i class="bi bi-info-lg"></i>
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#revokeModal" data-id="3">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="employee-info">
-                                    <strong>Emily Davis</strong>
-                                    <span class="employee-email">emily.d@company.com</span>
-                                </div>
-                            </td>
-                            <td>Marketing</td>
-                            <td><span class="badge badge-sick">Sick</span></td>
-                            <td>3 days</td>
-                            <td>May 10 - May 12, 2025</td>
-                            <td>COVID-19 symptoms</td>
-                            <td>
-                                <a href="#" class="text-decoration-none">
-                                    <i class="bi bi-paperclip me-1"></i>View
-                                </a>
-                            </td>
-                            <td><span class="badge badge-rejected">Rejected</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailsModal" data-id="4">
-                                        <i class="bi bi-info-lg"></i>
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#revokeModal" data-id="4">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        @if (Model.LeaveRequests.Any())
+                        {
+                            foreach (var item in Model.LeaveRequests)
+                            {
+                                var days = (item.EndDate.Date - item.StartDate.Date).Days + 1;
+                                var statusClass = string.Equals(item.Status, "Approved", System.StringComparison.OrdinalIgnoreCase)
+                                    ? "approved"
+                                    : string.Equals(item.Status, "Rejected", System.StringComparison.OrdinalIgnoreCase)
+                                        ? "rejected"
+                                        : "pending";
+
+                                <tr>
+                                    <td>#@item.LeaveRequestID</td>
+                                    <td>
+                                        <div class="fw-semibold">@item.EmployeeName</div>
+                                        <small class="text-muted">Emp ID: @item.EmployeeID</small>
+                                    </td>
+                                    <td>@item.LeaveType</td>
+                                    <td>
+                                        <div>@days day(s)</div>
+                                        <small class="text-muted">@item.StartDate.ToString("MMM d") - @item.EndDate.ToString("MMM d, yyyy")</small>
+                                    </td>
+                                    <td class="text-truncate" style="max-width: 260px;">@item.Reason</td>
+                                    <td><span class="status-pill @statusClass">@item.Status</span></td>
+                                    <td>@item.SubmittedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</td>
+                                    <td>
+                                        <div class="d-flex gap-1 flex-wrap">
+                                            @if (!string.Equals(item.Status, "Approved", System.StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <form method="post" asp-page-handler="Approve" asp-route-id="@item.LeaveRequestID" class="js-action-form" data-action="approve" data-name="@item.EmployeeName">
+                                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                                </form>
+                                            }
+                                            @if (!string.Equals(item.Status, "Rejected", System.StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <form method="post" asp-page-handler="Reject" asp-route-id="@item.LeaveRequestID" class="js-action-form" data-action="reject" data-name="@item.EmployeeName">
+                                                    <button type="submit" class="btn btn-sm btn-warning">Reject</button>
+                                                </form>
+                                            }
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@item.LeaveRequestID" class="js-action-form" data-action="delete" data-name="@item.EmployeeName">
+                                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">No leave requests yet.</td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
-
-            <!-- Pagination -->
-            <nav aria-label="Page navigation">
-                <ul class="pagination">
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                    </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Next</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </main>
-</div>
-
-<!-- Approve Modal -->
-<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="approveModalLabel">Approve Leave Request</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>You are about to approve leave request for <strong id="approveEmployeeName">John Smith</strong>.</p>
-                <div class="mb-3">
-                    <label for="approveComment" class="form-label">Comments (Optional)</label>
-                    <textarea class="form-control" id="approveComment" rows="3" placeholder="Add any comments for the employee..."></textarea>
-                </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="sendApprovalEmail" checked>
-                    <label class="form-check-label" for="sendApprovalEmail">
-                        Send email notification to employee
-                    </label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success">Confirm Approval</button>
-            </div>
         </div>
     </div>
 </div>
 
-<!-- Reject Modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="rejectModalLabel">Reject Leave Request</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>You are about to reject leave request for <strong id="rejectEmployeeName">John Smith</strong>.</p>
-                <div class="mb-3">
-                    <label for="rejectReason" class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="rejectReason" rows="3" placeholder="Please provide a reason for rejection..." required></textarea>
+<div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center p-4">
+                <div id="confirmActionIcon" class="action-confirm-icon approve">
+                    <i class="bi bi-check-circle-fill"></i>
                 </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="sendRejectionEmail" checked>
-                    <label class="form-check-label" for="sendRejectionEmail">
-                        Send email notification to employee
-                    </label>
+                <h5 id="confirmActionTitle" class="mb-2">Confirm action</h5>
+                <p id="confirmActionMessage" class="text-muted mb-4">Are you sure you want to continue?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="confirmActionSubmit">Yes, continue</button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger">Confirm Rejection</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Details Modal -->
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="detailsModalLabel">Leave Request Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h6>Employee Information</h6>
-                        <dl class="row">
-                            <dt class="col-sm-4">Name:</dt>
-                            <dd class="col-sm-8">John Smith</dd>
-                            <dt class="col-sm-4">ID:</dt>
-                            <dd class="col-sm-8">EMP-1234</dd>
-                            <dt class="col-sm-4">Department:</dt>
-                            <dd class="col-sm-8">IT</dd>
-                            <dt class="col-sm-4">Position:</dt>
-                            <dd class="col-sm-8">Senior Developer</dd>
-                        </dl>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Leave Details</h6>
-                        <dl class="row">
-                            <dt class="col-sm-4">Type:</dt>
-                            <dd class="col-sm-8"><span class="badge badge-vacation">Vacation</span></dd>
-                            <dt class="col-sm-4">Duration:</dt>
-                            <dd class="col-sm-8">5 days</dd>
-                            <dt class="col-sm-4">Start Date:</dt>
-                            <dd class="col-sm-8">May 15, 2025</dd>
-                            <dt class="col-sm-4">End Date:</dt>
-                            <dd class="col-sm-8">May 19, 2025</dd>
-                        </dl>
-                    </div>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h6>Reason</h6>
-                        <p>Family vacation planned months in advance. Going to Hawaii for annual family reunion.</p>
-                    </div>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h6>Attachments</h6>
-                        <ul class="list-group">
-                            <li class="list-group-item d-flex align-items-center">
-                                <i class="bi bi-file-pdf text-danger me-2 fs-5"></i>
-                                <div>
-                                    <span>Flight_Confirmation.pdf</span>
-                                    <div class="small text-muted">Added on May 1, 2025</div>
-                                </div>
-                                <button class="btn btn-sm btn-outline-primary ms-auto">View</button>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Leave Balance</h6>
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Used</th>
-                                    <th>Remaining</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Vacation</td>
-                                    <td>5</td>
-                                    <td>15</td>
-                                    <td>20</td>
-                                </tr>
-                                <tr>
-                                    <td>Sick</td>
-                                    <td>2</td>
-                                    <td>10</td>
-                                    <td>12</td>
-                                </tr>
-                                <tr>
-                                    <td>Personal</td>
-                                    <td>0</td>
-                                    <td>5</td>
-                                    <td>5</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-12">
-                        <h6>Action History</h6>
-                        <div class="timeline">
-                            <ul class="list-group">
-                                <li class="list-group-item">
-                                    <div class="d-flex justify-content-between">
-                                        <span><i class="bi bi-plus-circle text-primary me-2"></i> Submitted by John Smith</span>
-                                        <small>May 1, 2025 10:30 AM</small>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <div class="d-flex justify-content-between">
-                                        <span><i class="bi bi-eye text-info me-2"></i> Reviewed by HR Manager</span>
-                                        <small>May 2, 2025 11:15 AM</small>
-                                    </div>
-                                </li>
-                                <li class="list-group-item">
-                                    <div class="d-flex justify-content-between">
-                                        <span><i class="bi bi-hourglass-split text-warning me-2"></i> Pending Manager Approval</span>
-                                        <small>May 2, 2025 11:15 AM</small>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#approveModal">Approve</button>
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">Reject</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Revoke Decision Modal -->
-<div class="modal fade" id="revokeModal" tabindex="-1" aria-labelledby="revokeModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="revokeModalLabel">Revoke Previous Decision</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    This will revert the leave request status to "Pending" and notify all relevant parties.
-                </div>
-                <p>You are about to revoke your previous decision for <strong id="revokeEmployeeName">Emily Davis</strong>'s leave request.</p>
-                <div class="mb-3">
-                    <label for="revokeReason" class="form-label">Reason for Revocation <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="revokeReason" rows="3" placeholder="Please provide a reason for revocation..." required></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning">Confirm Revocation</button>
             </div>
         </div>
     </div>
@@ -753,119 +179,64 @@
 
 @section Scripts {
     <script>
-        // Initialize popovers and tooltips
-        document.addEventListener('DOMContentLoaded', function() {
-            // Filter functionality
-            const statusFilter = document.getElementById('statusFilter');
-            const typeFilter = document.getElementById('typeFilter');
-            const departmentFilter = document.getElementById('departmentFilter');
-            const dateFilter = document.getElementById('dateFilter');
-            const searchInput = document.getElementById('searchInput');
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalEl = document.getElementById('actionConfirmModal');
+            const modal = new bootstrap.Modal(modalEl);
+            const submitBtn = document.getElementById('confirmActionSubmit');
+            const titleEl = document.getElementById('confirmActionTitle');
+            const messageEl = document.getElementById('confirmActionMessage');
+            const iconEl = document.getElementById('confirmActionIcon');
+            let targetForm = null;
 
-            // Implement filter functionality
-            function applyFilters() {
-                const status = statusFilter.value;
-                const type = typeFilter.value;
-                const department = departmentFilter.value;
-                const dateRange = dateFilter.value;
-                const searchTerm = searchInput.value.toLowerCase();
+            document.querySelectorAll('.js-action-form').forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    targetForm = form;
 
-                // Get all table rows (skip header row)
-                const rows = document.querySelectorAll('.leave-table tbody tr');
+                    const action = (form.dataset.action || '').toLowerCase();
+                    const name = form.dataset.name || 'this request';
 
-                rows.forEach(row => {
-                    const rowStatus = row.querySelector('.badge').classList.contains('badge-pending') ? 'pending' :
-                                     row.querySelector('.badge').classList.contains('badge-approved') ? 'approved' : 'rejected';
-                    const rowType = row.querySelector('td:nth-child(3) span').textContent.toLowerCase();
-                    const rowDept = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                    const rowDates = row.querySelector('td:nth-child(5)').textContent;
-                    const rowEmployee = row.querySelector('td:nth-child(1) strong').textContent.toLowerCase();
+                    let title = 'Confirm action';
+                    let message = 'Are you sure you want to continue?';
+                    let buttonClass = 'btn-success';
+                    let iconClass = 'approve';
+                    let icon = 'bi-check-circle-fill';
 
-                    // Check filters
-                    const statusMatch = status === 'all' || rowStatus === status;
-                    const typeMatch = type === 'all' || rowType.includes(type);
-                    const deptMatch = department === 'all' || rowDept.includes(department.toLowerCase());
-                    const searchMatch = searchTerm === '' ||
-                                      rowEmployee.includes(searchTerm) ||
-                                      row.querySelector('td:nth-child(1) .employee-email').textContent.toLowerCase().includes(searchTerm);
-
-                    // Date range filtering (simplified)
-                    let dateMatch = true;
-                    if (dateRange !== 'all') {
-                        // In a real app, you would parse dates and compare properly
-                        dateMatch = true; // Placeholder for actual date logic
+                    if (action === 'approve') {
+                        title = 'Approve Leave Request';
+                        message = `Approve leave request for ${name}?`;
+                        buttonClass = 'btn-success';
+                        iconClass = 'approve';
+                        icon = 'bi-check-circle-fill';
+                    } else if (action === 'reject') {
+                        title = 'Reject Leave Request';
+                        message = `Reject leave request for ${name}?`;
+                        buttonClass = 'btn-warning';
+                        iconClass = 'reject';
+                        icon = 'bi-slash-circle-fill';
+                    } else if (action === 'delete') {
+                        title = 'Delete Leave Request';
+                        message = `Delete leave request for ${name}? This cannot be undone.`;
+                        buttonClass = 'btn-danger';
+                        iconClass = 'delete';
+                        icon = 'bi-trash-fill';
                     }
 
-                    // Show/hide row based on filters
-                    row.style.display = (statusMatch && typeMatch && deptMatch && dateMatch && searchMatch) ? '' : 'none';
-                });
-            }
+                    titleEl.textContent = title;
+                    messageEl.textContent = message;
+                    submitBtn.className = `btn ${buttonClass}`;
+                    iconEl.className = `action-confirm-icon ${iconClass}`;
+                    iconEl.innerHTML = `<i class="bi ${icon}"></i>`;
 
-            // Event listeners for filters
-            [statusFilter, typeFilter, departmentFilter, dateFilter].forEach(filter => {
-                filter.addEventListener('change', applyFilters);
+                    modal.show();
+                });
             });
 
-            searchInput.addEventListener('input', function() {
-                if (this.value.length >= 3 || this.value.length === 0) {
-                    applyFilters();
+            submitBtn.addEventListener('click', function () {
+                if (targetForm) {
+                    targetForm.submit();
                 }
-            });
-
-            // Modal handlers
-            const approveModal = document.getElementById('approveModal');
-            if (approveModal) {
-                approveModal.addEventListener('show.bs.modal', function (event) {
-                    const button = event.relatedTarget;
-                    const requestId = button.getAttribute('data-id');
-                    const employeeName = button.closest('tr').querySelector('td:nth-child(1) strong').textContent;
-                    document.getElementById('approveEmployeeName').textContent = employeeName;
-                });
-            }
-
-            const rejectModal = document.getElementById('rejectModal');
-            if (rejectModal) {
-                rejectModal.addEventListener('show.bs.modal', function (event) {
-                    const button = event.relatedTarget;
-                    const requestId = button.getAttribute('data-id');
-                    const employeeName = button.closest('tr').querySelector('td:nth-child(1) strong').textContent;
-                    document.getElementById('rejectEmployeeName').textContent = employeeName;
-                });
-            }
-
-            // Form submission handlers
-            document.querySelectorAll('#approveModal .btn-success, #rejectModal .btn-danger, #revokeModal .btn-warning').forEach(button => {
-                button.addEventListener('click', function() {
-                    const modalId = this.closest('.modal').id;
-                    const requestId = this.getAttribute('data-id');
-
-                    // In a real app, you would make an AJAX call here
-                    console.log(`Processing ${modalId} for request ${requestId}`);
-
-                    // Close modal
-                    bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
-
-                    // Show success message
-                    alert('Action completed successfully!');
-                });
-            });
-
-            // Initialize Bootstrap tooltips
-            [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).forEach(function (tooltipTriggerEl) {
-                new bootstrap.Tooltip(tooltipTriggerEl);
             });
         });
-
-        // Additional functionality for pagination
-        function loadPage(pageNumber) {
-            // In a real app, this would fetch data for the selected page
-            console.log(`Loading page ${pageNumber}`);
-            document.querySelectorAll('.pagination .page-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.textContent.trim() === pageNumber.toString()) {
-                    item.classList.add('active');
-                }
-            });
-        }
     </script>
 }

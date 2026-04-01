@@ -30,6 +30,15 @@ namespace HumanRepProj
         [Column("LoanTerm")]
         public decimal LoanTerm { get; set; }
 
+        [Column("ReviewedBy")]
+        public string? ReviewedBy { get; set; }
+
+        [Column("ReviewedAt")]
+        public DateTime? ReviewedAt { get; set; }
+
+        [Column("DecisionNote")]
+        public string? DecisionNote { get; set; }
+
 
     }
 }

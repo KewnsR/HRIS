@@ -1,6 +1,8 @@
 using HumanRepProj.Data;
+using HumanRepProj.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,10 +11,12 @@ namespace HumanRepProj.Pages
     public class UserProfileModel : PageModel
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public UserProfileModel(ApplicationDbContext context)
+        public UserProfileModel(ApplicationDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         [BindProperty]
@@ -27,6 +31,7 @@ namespace HumanRepProj.Pages
         public string EmployeeCode { get; private set; } = "-";
         public string JoinDateText { get; private set; } = "-";
         public string Initials { get; private set; } = "EM";
+        public string EmployeeQrCodeUrl { get; private set; } = string.Empty;
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -118,6 +123,7 @@ namespace HumanRepProj.Pages
             EmployeeCode = $"EMP-{employee.EmployeeID:D5}";
             JoinDateText = employee.DateHired == default ? "-" : employee.DateHired.ToString("MMMM dd, yyyy");
             Initials = BuildInitials(employee.FullName);
+            EmployeeQrCodeUrl = EmployeeQrCodeService.EnsureQrCodeForEmployee(employee.EmployeeID, _environment.WebRootPath);
         }
 
         private static string BuildInitials(string fullName)

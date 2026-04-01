@@ -183,8 +183,31 @@
 }
 
 <div class="attendance-container">
-    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <a href="/UserDashboard" class="btn btn-primary me-3">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
         <h1 class="h2 mb-0">Record Attendance</h1>
+    </div>
+
+    @if (TempData["AttendanceMessage"] != null)
+    {
+        <div class="alert alert-info" role="alert">
+            @TempData["AttendanceMessage"]
+        </div>
+    }
+
+    <div class="alert alert-light border mb-3" role="alert">
+        <div><strong>Employee:</strong> @Model.EmployeeName</div>
+        <div><strong>Employee ID:</strong> @Model.EmployeeId</div>
+        @if (Model.TodayRecord != null)
+        {
+            <div><strong>Today:</strong> Check-in @Model.TodayRecord.TimeIn | Check-out @(Model.TodayRecord.TimeOut?.ToString() ?? "Not yet")</div>
+        }
+        else
+        {
+            <div><strong>Today:</strong> No attendance log yet</div>
+        }
     </div>
 
     <div class="video-container mt-4">
@@ -197,9 +220,14 @@
     </div>
 
     <div class="controls">
-        <button id="captureBtn" class="btn btn-primary btn-capture" disabled>
-            <i class="fas fa-camera mr-2"></i> Verify Face
-        </button>
+        <form method="post" class="mt-3">
+            <button type="submit" class="btn btn-outline-secondary btn-capture" @(Model.AttendanceCompleted ? "disabled" : "")>
+                <i class="fas fa-pen"></i>
+                @(Model.TodayRecord == null ? " Manual Check In" : Model.TodayRecord.TimeOut.HasValue ? " Attendance Completed" : " Manual Check Out")
+            </button>
+        </form>
+
+        <small class="text-muted mt-2">No QR? Use manual attendance.</small>
 
         <div class="status-container mt-3">
             <p id="status" class="text-muted">Waiting for QR code scan...</p>
@@ -227,14 +255,12 @@
 
 @section Scripts {
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('canvas');
         const canvasOverlay = document.getElementById('canvas-overlay');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const overlayCtx = canvasOverlay.getContext('2d');
-        const captureBtn = document.getElementById('captureBtn');
         const statusText = document.getElementById('status');
         const scanArea = document.getElementById('scanArea');
         const employeeInfo = document.getElementById('employeeInfo');
@@ -248,10 +274,10 @@
         const modalActionBtn = document.getElementById('modalActionBtn');
         const progressBar = document.getElementById('progressBar');
         const progressContainer = document.getElementById('progressContainer');
+        const allowedEmployeeId = @Model.EmployeeId;
 
         let employeeId = null;
         let scanning = true;
-        let qrScanned = false;
         let processingAttendance = false;
 
         // Start Camera
@@ -284,9 +310,6 @@
             canvasOverlay.height = videoRect.height;
         }
 
-        // QR Scanning Loop
-        let lastDetectTime = 0;
-
         function scanQR() {
             if (!scanning || processingAttendance) return;
 
@@ -300,30 +323,35 @@
             const code = jsQR(imageData.data, imageData.width, imageData.height);
 
             if (code) {
+                const scannedEmployeeId = parseInt(code.data, 10);
+                if (Number.isNaN(scannedEmployeeId)) {
+                    showStatus("❌ Invalid QR code. Please scan your employee QR.", "text-danger");
+                    requestAnimationFrame(scanQR);
+                    return;
+                }
+
+                if (scannedEmployeeId !== allowedEmployeeId) {
+                    showStatus("❌ This QR is not assigned to your account.", "text-danger");
+                    requestAnimationFrame(scanQR);
+                    return;
+                }
+
                 // Clear overlay and draw new QR box
                 overlayCtx.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
                 drawQRBoundingBox(code.location);
 
-                employeeId = code.data;
+                employeeId = scannedEmployeeId;
                 showStatus("✅ QR Scanned: Employee ID " + employeeId, "text-success");
                 scanning = false;
-                qrScanned = true;
                 scanArea.style.display = "none";
-
-                // Show face instruction
-                showFaceInstructionModal();
-                captureBtn.disabled = false;
 
                 // Fetch employee info (simulated)
                 fetchEmployeeInfo(employeeId);
 
-                return;
-            }
+                // Record attendance immediately via QR
+                recordAttendanceFromQr();
 
-            let now = Date.now();
-            if (now - lastDetectTime > 300) {
-                detectFacesAndDraw();
-                lastDetectTime = now;
+                return;
             }
 
             requestAnimationFrame(scanQR);
@@ -363,23 +391,10 @@
             };
         }
 
-        function showFaceInstructionModal() {
-            modalIcon.textContent = "👤";
-            modalTitle.textContent = "Face Verification";
-            modalMessage.textContent = "Please position your face in front of the camera and click 'Verify Face' button.";
-            modalActionBtn.textContent = "Got it";
-            progressContainer.style.display = "none";
-            modal.style.display = "flex";
-
-            modalActionBtn.onclick = () => {
-                modal.style.display = "none";
-            };
-        }
-
         function showProcessingModal() {
             modalIcon.textContent = "⏳";
             modalTitle.textContent = "Processing";
-            modalMessage.textContent = "Verifying your identity...";
+            modalMessage.textContent = "Recording attendance...";
             modalActionBtn.style.display = "none";
             progressContainer.style.display = "block";
             progressBar.style.width = "0%";
@@ -394,10 +409,10 @@
             }, 50);
         }
 
-        function showSuccessModal() {
+        function showSuccessModal(message) {
             modalIcon.textContent = "✅";
             modalTitle.textContent = "Success!";
-            modalMessage.textContent = "Your attendance has been recorded successfully.";
+            modalMessage.textContent = message || "Your attendance has been recorded successfully.";
             modalActionBtn.textContent = "Done";
             modalActionBtn.style.display = "block";
             progressContainer.style.display = "none";
@@ -429,135 +444,64 @@
             statusText.innerHTML = message;
         }
 
-        async function detectFacesAndDraw() {
-            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.5);
-
-            try {
-                const response = await fetch('/api/attendance/detect-face', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(imageDataUrl)
-                });
-
-                const result = await response.json();
-
-                // Clear the overlay canvas
-                overlayCtx.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
-
-                if (result.success && result.faces.length > 0) {
-                    const scaleX = canvasOverlay.width / canvas.width;
-                    const scaleY = canvasOverlay.height / canvas.height;
-
-                    result.faces.forEach(face => {
-                        // Draw face outline
-                        overlayCtx.strokeStyle = "#2196F3";
-                        overlayCtx.lineWidth = 3;
-                        overlayCtx.strokeRect(
-                            face.x * scaleX,
-                            face.y * scaleY,
-                            face.width * scaleX,
-                            face.height * scaleY
-                        );
-
-                        // Draw face highlight
-                        overlayCtx.fillStyle = "rgba(33, 150, 243, 0.15)";
-                        overlayCtx.fillRect(
-                            face.x * scaleX,
-                            face.y * scaleY,
-                            face.width * scaleX,
-                            face.height * scaleY
-                        );
-                    });
-                }
-            } catch (e) {
-                console.error("Face detection failed", e);
-            }
-        }
-
         function fetchEmployeeInfo(empId) {
             // Simulated employee data fetch
             // In a real app, this would be an API call
             employeeInfo.style.display = "block";
             employeeDetails.innerHTML = `
                 <div class="mb-2"><strong>ID:</strong> ${empId}</div>
-                <div class="mb-2"><strong>Status:</strong> <span class="badge bg-warning text-dark">Verification Pending</span></div>
+                <div class="mb-2"><strong>Status:</strong> <span class="badge bg-info text-dark">QR Scanned</span></div>
             `;
         }
 
-        function updateEmployeeInfoSuccess() {
+        function updateEmployeeInfoSuccess(actionLabel, timeLabel) {
             employeeDetails.innerHTML = `
                 <div class="mb-2"><strong>ID:</strong> ${employeeId}</div>
-                <div class="mb-2"><strong>Status:</strong> <span class="badge bg-success">Verified</span></div>
-                <div class="mb-2"><strong>Check-in Time:</strong> ${new Date().toLocaleTimeString()}</div>
+                <div class="mb-2"><strong>Status:</strong> <span class="badge bg-success">Recorded</span></div>
+                <div class="mb-2"><strong>Last Action:</strong> ${actionLabel}</div>
+                <div class="mb-2"><strong>Time:</strong> ${timeLabel || new Date().toLocaleTimeString()}</div>
                 <div class="mb-2"><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
             `;
         }
 
-        // Capture Face & Send to Verification API
-        captureBtn.addEventListener('click', async () => {
+        async function recordAttendanceFromQr() {
             if (processingAttendance) return;
 
             processingAttendance = true;
-            captureBtn.disabled = true;
             showProcessingModal();
 
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const image = canvas.toDataURL('image/jpeg', 0.8);
-
             try {
-                const response = await axios.post('/api/attendance/verify-face', {
-                    EmployeeId: employeeId,
-                    Image: image
+                const attendanceRes = await fetch('/api/attendance/log', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employeeId: employeeId })
                 });
 
-                // Simulate longer processing time for better UX
-                setTimeout(async () => {
-                    if (response.data.match) {
-                        // Record attendance if face matches
-                        try {
-                            const attendanceRes = await fetch('/api/attendance/log', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ employeeId: employeeId })
-                            });
+                const attendanceJson = await attendanceRes.json();
 
-                            if (attendanceRes.ok) {
-                                showSuccessModal();
-                                showStatus("✅ Identity verified. Attendance recorded!", "text-success");
-                                updateEmployeeInfoSuccess();
-                            } else {
-                                showErrorModal("Failed to record attendance.");
-                                showStatus("❌ Failed to record attendance.", "text-danger");
-                                processingAttendance = false;
-                                captureBtn.disabled = false;
-                            }
-                        } catch (err) {
-                            showErrorModal("Network error.");
-                            showStatus("⚠️ Network error.", "text-danger");
-                            processingAttendance = false;
-                            captureBtn.disabled = false;
-                        }
-                    } else {
-                        showErrorModal("Face verification failed. Please try again.");
-                        showStatus("❌ Face does not match employee record.", "text-danger");
-                        processingAttendance = false;
-                        captureBtn.disabled = false;
-                    }
-                }, 1500);
+                if (attendanceRes.ok) {
+                    const actionLabel = attendanceJson.action === "check-out" ? "Check-out" : "Check-in";
+                    const successMessage = attendanceJson.message || "Attendance recorded successfully.";
+                    showSuccessModal(successMessage);
+                    showStatus(`✅ ${successMessage}`, "text-success");
+                    updateEmployeeInfoSuccess(actionLabel, attendanceJson.time);
+                } else {
+                    const errorMessage = attendanceJson.message || "Failed to record attendance.";
+                    showErrorModal(errorMessage);
+                    showStatus(`❌ ${errorMessage}`, "text-danger");
+                    processingAttendance = false;
+                }
             } catch (err) {
-                showErrorModal("Error verifying face.");
-                showStatus("⚠️ Error verifying face.", "text-danger");
+                showErrorModal("Network error.");
+                showStatus("⚠️ Network error.", "text-danger");
                 processingAttendance = false;
-                captureBtn.disabled = false;
             }
-        });
+        }
 
         function resetScanner() {
             employeeId = null;
             scanning = true;
-            qrScanned = false;
             processingAttendance = false;
-            captureBtn.disabled = true;
             showStatus("Waiting for QR code scan...");
             scanArea.style.display = "flex";
             employeeInfo.style.display = "none";

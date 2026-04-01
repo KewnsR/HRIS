@@ -22,6 +22,7 @@ namespace HumanRepProj.Data
         public DbSet<Department> Departments { get; set; }
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
         public DbSet<Loans> Loans { get; set; }
+        public DbSet<LeaveRequest> LeaveRequests { get; set; }
         public DbSet<FaceData> FaceData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -32,6 +33,7 @@ namespace HumanRepProj.Data
             ConfigureDepartment(modelBuilder);
             ConfigureEmployee(modelBuilder);
             ConfigureAttendanceRecord(modelBuilder);
+            ConfigureLeaveRequest(modelBuilder);
 
             modelBuilder.Entity<Loans>().ToTable("Loans");
 
@@ -44,6 +46,18 @@ namespace HumanRepProj.Data
             modelBuilder.Entity<Loans>()
          .Property(l => l.PaidLoan)
          .HasColumnType("decimal(18,2)");
+
+                modelBuilder.Entity<Loans>()
+            .Property(l => l.ReviewedBy)
+            .HasMaxLength(50);
+
+                modelBuilder.Entity<Loans>()
+            .Property(l => l.ReviewedAt)
+            .HasColumnType("timestamp with time zone");
+
+                modelBuilder.Entity<Loans>()
+            .Property(l => l.DecisionNote)
+            .HasMaxLength(500);
 
         }
 
@@ -181,6 +195,35 @@ namespace HumanRepProj.Data
                        .OnDelete(DeleteBehavior.Cascade);
            
         });
+        }
+
+        private void ConfigureLeaveRequest(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<LeaveRequest>(entity =>
+            {
+                entity.ToTable("LeaveRequests");
+                entity.HasKey(r => r.LeaveRequestID);
+
+                entity.Property(r => r.EmployeeName).IsRequired().HasMaxLength(120);
+                entity.Property(r => r.LeaveType).IsRequired().HasMaxLength(80);
+                entity.Property(r => r.Reason).IsRequired().HasMaxLength(500);
+                entity.Property(r => r.ContactDuringLeave).IsRequired().HasMaxLength(40);
+                entity.Property(r => r.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Pending");
+
+                    entity.Property(r => r.StartDate).HasColumnType("date");
+                    entity.Property(r => r.EndDate).HasColumnType("date");
+
+                entity.Property(r => r.SubmittedAt)
+                      .HasColumnType("timestamp with time zone")
+                      .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(r => r.ReviewedBy).HasMaxLength(50);
+                entity.Property(r => r.ReviewedAt).HasColumnType("timestamp with time zone");
+                entity.Property(r => r.DecisionNote).HasMaxLength(500);
+
+                entity.HasIndex(r => r.EmployeeID).HasDatabaseName("IX_LeaveRequests_EmployeeID");
+                entity.HasIndex(r => r.Status).HasDatabaseName("IX_LeaveRequests_Status");
+            });
         }
 
         public override int SaveChanges()

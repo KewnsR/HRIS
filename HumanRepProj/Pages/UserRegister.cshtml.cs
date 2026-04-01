@@ -4,6 +4,7 @@ using HumanRepProj.Data;
 using HumanRepProj.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -11,16 +12,19 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
+using HumanRepProj.Services;
 
 namespace HumanRepProj.Pages
 {
     public class UserRegisterModel : PageModel
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public UserRegisterModel(ApplicationDbContext context)
+        public UserRegisterModel(ApplicationDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         [BindProperty]
@@ -112,6 +116,8 @@ namespace HumanRepProj.Pages
 
             _context.ApplicationUsers.Add(user);
             await _context.SaveChangesAsync();
+
+            EmployeeQrCodeService.EnsureQrCodeForEmployee(employee.EmployeeID, _environment.WebRootPath);
 
             TempData["SuccessMessage"] = "Account created successfully. You can now log in.";
             return RedirectToPage("/UserLogin");

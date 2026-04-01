@@ -192,7 +192,7 @@
             box-shadow: var(--shadow);
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             padding: 0 2rem;
             position: sticky;
             top: 0;
@@ -219,31 +219,6 @@
             font-weight: 700;
             letter-spacing: 0.02em;
         }
-
-        .top-nav-right {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .search-bar {
-            display: flex;
-            align-items: center;
-            background: #f1f5f9;
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius);
-            width: min(360px, 100%);
-            border: 1px solid #dbe3ee;
-        }
-
-            .search-bar input {
-                border: none;
-                outline: none;
-                background: transparent;
-                width: 100%;
-                margin-left: 0.5rem;
-                font-size: 0.875rem;
-            }
 
         /* Content Container */
         .content-container {
@@ -286,7 +261,7 @@
 
         .quick-actions {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -563,14 +538,6 @@
             display: none;
         }
 
-        .top-nav-right {
-            flex: 1;
-        }
-
-        .search-bar {
-            width: 100%;
-        }
-
         .content-container {
             padding: 1rem;
         }
@@ -636,6 +603,12 @@
                         </a>
                     </li>
                     <li>
+                        <a asp-page="/Attendance/RecordAttendance">
+                            <i class="fas fa-clock"></i>
+                            <span>Attendance</span>
+                        </a>
+                    </li>
+                    <li>
                         <a asp-page="/UserLoanRequest">
                             <i class="fas fa-hand-holding-usd"></i>
                             <span>Loan Request</span>
@@ -662,12 +635,6 @@
                     </button>
                     <span class="section-pill"><i class="fas fa-compass"></i> Employee Workspace</span>
                 </div>
-                <div class="top-nav-right">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search...">
-                    </div>
-                </div>
             </header>
 
             <!-- Page Content -->
@@ -680,6 +647,7 @@
                         </div>
 
                         <div class="quick-actions">
+                            <a asp-page="/Attendance/RecordAttendance" class="quick-action"><i class="fas fa-clock"></i> Check In/Out</a>
                             <a asp-page="/UserLeaveRequest" class="quick-action"><i class="fas fa-calendar-plus"></i> Request Leave</a>
                             <a asp-page="/UserLoanRequest" class="quick-action"><i class="fas fa-file-invoice-dollar"></i> Apply Loan</a>
                             <a asp-page="/UserProfile" class="quick-action"><i class="fas fa-id-badge"></i> Update Profile</a>

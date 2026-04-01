@@ -14,14 +14,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --primary-light: #eef2ff;
-            --secondary: #64748b;
+            --primary: #0f4c81;
+            --primary-hover: #0c3f6b;
+            --primary-light: #e6f0f9;
+            --secondary: #5f6c82;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --info: #3b82f6;
+            --info: #2563eb;
             --dark: #0f172a;
             --light: #f8fafc;
             --sidebar-width: 280px;
@@ -29,6 +29,7 @@
             --transition: all 0.3s ease;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 14px 40px rgba(15, 23, 42, 0.08);
             --border-radius: 0.5rem;
         }
 
@@ -40,7 +41,7 @@
         }
 
         body {
-            background-color: #f9fafb;
+            background: radial-gradient(circle at 20% 0%, #f5f9ff 0%, #eef2f7 48%, #edf1f8 100%);
             color: #1e293b;
             font-size: 0.875rem;
         }
@@ -180,16 +181,18 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            min-height: 100vh;
         }
 
         /* Top Navigation */
         .top-nav {
             height: var(--header-height);
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(6px);
             box-shadow: var(--shadow);
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: flex-start;
             padding: 0 2rem;
             position: sticky;
             top: 0;
@@ -197,48 +200,62 @@
             border-bottom: 1px solid #e2e8f0;
         }
 
-        .search-bar {
+        .top-nav-left {
             display: flex;
             align-items: center;
-            background: #f1f5f9;
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius);
-            width: 300px;
+            gap: 0.75rem;
         }
 
-            .search-bar input {
-                border: none;
-                outline: none;
-                background: transparent;
-                width: 100%;
-                margin-left: 0.5rem;
-                font-size: 0.875rem;
-            }
+        .section-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid #c7ddf2;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #0f172a;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        
 
         /* Loan Request Content */
         .content-container {
-            width: min(1200px, 100%);
+            width: min(1280px, 100%);
             margin: 0 auto;
-            padding: 1.75rem 2rem 2rem;
+            padding: 2rem 2rem 2.25rem;
             flex-grow: 1;
         }
 
         .page-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .page-title {
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.015em;
         }
 
         .loan-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+            gap: 1.5rem;
         }
 
         @@media (max-width: 1024px) {
@@ -253,46 +270,337 @@
         .loan-card {
             background: white;
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-sm);
+            padding: 1.75rem;
         }
 
-        /* ... (rest of your existing loan request styles) ... */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.35rem;
+            color: var(--dark);
+            border-bottom: none;
+        }
+
+        .form-group {
+            margin-bottom: 1.35rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+
+        .form-control, .form-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            background-color: #f8fafc;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+
+            .form-control:focus, .form-select:focus {
+                outline: none;
+                border-color: var(--primary);
+                background-color: #ffffff;
+                box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.1);
+            }
+
+        .amount-input {
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .amount-input span {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .amount-input input {
+            flex: 1;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2.25rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 0.8rem 1.7rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.2);
+        }
+
+            .btn-primary:hover {
+                background-color: var(--primary-hover);
+                box-shadow: 0 6px 16px rgba(15, 76, 129, 0.3);
+                transform: translateY(-1px);
+            }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--secondary);
+            border: 1px solid #cbd5e1;
+            font-weight: 600;
+        }
+
+            .btn-outline:hover {
+                background-color: #f8fafc;
+                border-color: #94a3b8;
+            }
+
+        .eligibility-card {
+            background: linear-gradient(145deg, #0f4c81 0%, #1a6aa9 100%);
+            border-radius: 14px;
+            color: #ffffff;
+            padding: 1.35rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .eligibility-amount {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+
+        .eligibility-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .progress-container {
+            margin: 1.5rem 0;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.6rem;
+            font-size: 0.85rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .loan-history {
+            margin-top: 2.25rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+            .history-table th, .history-table td {
+                padding: 0.9rem;
+                text-align: left;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .history-table th {
+                font-weight: 700;
+                color: var(--secondary);
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                background-color: #f8fafc;
+            }
+
+        .history-table tbody tr {
+            transition: var(--transition);
+        }
+
+        .history-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .status {
+            padding: 0.4rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #b45309;
+        }
+
+        .status-approved {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .logout-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .logout-popup.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .logout-popup-content {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 320px;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .logout-popup.active .logout-popup-content {
+            transform: translateY(0);
+        }
+
+        .logout-popup-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .logout-popup-body p {
+            margin: 0 0 1.5rem 0;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .logout-popup-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .logout-popup-btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            min-width: 80px;
+        }
+
+        .logout-popup-btn.cancel {
+            background-color: #ff5252;
+            color: white;
+        }
+
+        .logout-popup-btn.cancel:hover {
+            background-color: #ff1a1a;
+        }
+
+        .logout-popup-btn.confirm {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .logout-popup-btn.confirm:hover {
+            background-color: #45a049;
+        }
 
         /* Responsive */
         @@media (max-width: 768px) {
-            .sidebar
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                width: 280px;
+                z-index: 1001;
+            }
 
-        {
-            transform: translateX(-100%);
-            position: fixed;
-            width: 280px;
-            z-index: 1001;
-        }
+            .sidebar.open {
+                transform: translateX(0);
+            }
 
-        .sidebar.open {
-            transform: translateX(0);
-        }
+            .main-content {
+                margin-left: 0;
+            }
 
-        .main-content {
-            margin-left: 0;
-        }
+            .top-nav {
+                justify-content: space-between;
+                padding: 0 1rem;
+            }
 
-        .top-nav {
-            justify-content: space-between;
-            padding: 0 1rem;
-        }
+            .sidebar-toggle {
+                display: inline-flex;
+            }
 
-        .search-bar {
-            width: auto;
-            flex-grow: 1;
-            margin: 0 1rem;
-        }
+            .section-pill {
+                display: none;
+            }
 
-        .content-container {
-            padding: 1rem;
-        }
+            .content-container {
+                padding: 1rem;
+            }
 
+            .loan-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.45rem;
+            }
         }
     </style>
 </head>
@@ -331,6 +639,12 @@
                         </a>
                     </li>
                     <li>
+                        <a asp-page="/Attendance/RecordAttendance">
+                            <i class="fas fa-clock"></i>
+                            <span>Attendance</span>
+                        </a>
+                    </li>
+                    <li>
                         <a asp-page="/UserLoanRequest" class="active">
                             <i class="fas fa-hand-holding-usd"></i>
                             <span>Loan Request</span>
@@ -340,7 +654,7 @@
             </nav>
 
             <div class="sidebar-footer">
-                <a href="/UserLogin?logout=true">
+                <a href="/UserLogin?logout=true" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
@@ -349,14 +663,19 @@
 
         <!-- Main Content -->
         <main class="main-content">
-
+             <!-- Top Navigation Bar -->
+             <header class="top-nav">
+                 <div class="top-nav-left">
+                     <button type="button" class="sidebar-toggle" aria-label="Toggle menu">
+                         <i class="fas fa-bars"></i>
+                     </button>
+                     <span class="section-pill"><i class="fas fa-hand-holding-usd"></i> Loan Requests</span>
+                 </div>
+             </header>
             <!-- Page Content -->
             <div class="content-container">
                 <div class="page-header">
                     <h1 class="page-title">Loan Request</h1>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-plus"></i> New Request
-                    </button>
                 </div>
 
                 <div class="loan-container">
@@ -364,38 +683,43 @@
                     <div class="loan-card">
                         <h3 class="section-title">Request Loan</h3>
 
-                        <form>
+                        <form method="post" novalidate>
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
                             <div class="form-group">
                                 <label class="form-label">Loan Type</label>
-                                <select class="form-select">
+                                <select class="form-select" asp-for="Input.LoanType">
                                     <option value="">Select loan type</option>
-                                    <option value="emergency">Emergency Loan</option>
-                                    <option value="education">Education Loan</option>
-                                    <option value="housing">Housing Loan</option>
-                                    <option value="vehicle">Vehicle Loan</option>
+                                    <option value="Emergency">Emergency Loan</option>
+                                    <option value="Education">Education Loan</option>
+                                    <option value="Housing">Housing Loan</option>
+                                    <option value="Vehicle">Vehicle Loan</option>
                                 </select>
+                                <span asp-validation-for="Input.LoanType" class="text-danger"></span>
                             </div>
 
                             <div class="form-group amount-input">
-                                <label class="form-label">Loan Amount</label>
-                                <span>$</span>
-                                <input type="number" class="form-control" placeholder="Enter amount">
+                                <label class="form-label">Loan Amount (₱)</label>
+                                <span>₱</span>
+                                <input type="number" class="form-control" asp-for="Input.LoanAmount" placeholder="Enter amount in PHP" min="1000" max="50000" step="0.01">
                             </div>
+                            <span asp-validation-for="Input.LoanAmount" class="text-danger"></span>
 
                             <div class="form-group">
                                 <label class="form-label">Installment Period</label>
-                                <select class="form-select">
+                                <select class="form-select" asp-for="Input.InstallmentMonths">
                                     <option value="">Select period</option>
                                     <option value="3">3 Months</option>
                                     <option value="6">6 Months</option>
                                     <option value="12">12 Months</option>
                                     <option value="24">24 Months</option>
                                 </select>
+                                <span asp-validation-for="Input.InstallmentMonths" class="text-danger"></span>
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Reason</label>
-                                <textarea class="form-control" rows="4" placeholder="Enter reason for loan"></textarea>
+                                <textarea class="form-control" rows="4" asp-for="Input.Reason" placeholder="Enter reason for loan"></textarea>
+                                <span asp-validation-for="Input.Reason" class="text-danger"></span>
                             </div>
 
                             <div class="form-actions">
@@ -408,16 +732,16 @@
                     <!-- Loan Eligibility -->
                     <div class="loan-card">
                         <div class="eligibility-card">
-                            <div class="eligibility-amount">$5,000</div>
+                            <div class="eligibility-amount">₱@Model.MaxEligibility.ToString("N0")</div>
                             <div class="eligibility-label">Your maximum loan eligibility</div>
 
                             <div class="progress-container">
                                 <div class="progress-labels">
-                                    <span>$0</span>
-                                    <span>$10,000</span>
+                                    <span>₱0</span>
+                                    <span>₱@Model.MaxEligibility.ToString("N0")</span>
                                 </div>
                                 <div class="progress-bar">
-                                    <div class="progress" style="width: 50%"></div>
+                                    <div class="progress" style="width: @(Model.MaxEligibility == 0 ? 0 : (int)Math.Min(100m, Math.Round((Model.UsedEligibility / Model.MaxEligibility) * 100m)))%"></div>
                                 </div>
                             </div>
                         </div>
@@ -436,24 +760,29 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>May 15, 2025</td>
-                                            <td>Emergency</td>
-                                            <td>$1,200</td>
-                                            <td><span class="status status-approved">Approved</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Mar 10, 2025</td>
-                                            <td>Education</td>
-                                            <td>$3,500</td>
-                                            <td><span class="status status-approved">Approved</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Jun 5, 2025</td>
-                                            <td>Housing</td>
-                                            <td>$4,000</td>
-                                            <td><span class="status status-pending">Pending</span></td>
-                                        </tr>
+                                        @if (Model.RecentLoans.Any())
+                                        {
+                                            foreach (var loan in Model.RecentLoans)
+                                            {
+                                                var statusClass = string.Equals(loan.LoanStatus, "Approved", System.StringComparison.OrdinalIgnoreCase)
+                                                    ? "status-approved"
+                                                    : string.Equals(loan.LoanStatus, "Rejected", System.StringComparison.OrdinalIgnoreCase)
+                                                        ? "status-rejected"
+                                                        : "status-pending";
+                                                <tr>
+                                                    <td>@loan.DateIssued.ToLocalTime().ToString("MMM d, yyyy")</td>
+                                                    <td>@loan.LoanType</td>
+                                                    <td>₱@loan.LoanAmount.ToString("N2")</td>
+                                                    <td><span class="status @statusClass">@loan.LoanStatus</span></td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">No loan requests yet.</td>
+                                            </tr>
+                                        }
                                     </tbody>
                                 </table>
                             </div>
@@ -464,36 +793,88 @@
         </main>
     </div>
 
+    <div id="successPopup" style="display:none;position:fixed;right:20px;bottom:20px;background:#16a34a;color:#fff;padding:12px 16px;border-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,.2);z-index:2000;">
+        <i class="fas fa-check-circle"></i> <span id="successMessageText"></span>
+    </div>
+
+    <div id="logoutPopup" class="logout-popup">
+        <div class="logout-popup-content">
+            <div class="logout-popup-body">
+                <p>Are you sure you want to log out?</p>
+                <div class="logout-popup-buttons">
+                    <button id="confirmLogout" class="logout-popup-btn confirm">Yes</button>
+                    <button id="cancelLogout" class="logout-popup-btn cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Mobile sidebar toggle functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const sidebarToggle = document.createElement('button');
-            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
-            sidebarToggle.style.background = 'none';
-            sidebarToggle.style.border = 'none';
-            sidebarToggle.style.fontSize = '1.25rem';
-            sidebarToggle.style.cursor = 'pointer';
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggle = document.querySelector('.sidebar-toggle');
 
-            const topNav = document.querySelector('.top-nav');
-            if (topNav) {
-                const topNavLeft = document.createElement('div');
-                topNavLeft.appendChild(sidebarToggle);
-                topNav.prepend(topNavLeft);
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('open');
+                });
             }
 
-            const sidebar = document.querySelector('.sidebar');
+            const logoutButton = document.getElementById('logoutBtn');
+            const logoutPopup = document.getElementById('logoutPopup');
+            const cancelLogout = document.getElementById('cancelLogout');
+            const confirmLogout = document.getElementById('confirmLogout');
 
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-            });
+            if (logoutButton && logoutPopup && cancelLogout && confirmLogout) {
+                const logoutUrl = logoutButton.getAttribute('href');
+
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    logoutPopup.classList.add('active');
+                });
+
+                cancelLogout.addEventListener('click', function() {
+                    logoutPopup.classList.remove('active');
+                });
+
+                confirmLogout.addEventListener('click', function() {
+                    window.location.href = logoutUrl;
+                });
+
+                logoutPopup.addEventListener('click', function(e) {
+                    if (e.target === logoutPopup) {
+                        logoutPopup.classList.remove('active');
+                    }
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && logoutPopup.classList.contains('active')) {
+                        logoutPopup.classList.remove('active');
+                    }
+                });
+            }
 
             // Format currency input
             const amountInput = document.querySelector('.amount-input input');
-            amountInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                e.target.value = value ? parseInt(value, 10) : '';
-            });
+            if (amountInput) {
+                amountInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    e.target.value = value ? parseInt(value, 10) : '';
+                });
+            }
+
+            const successMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SuccessMessage));
+            if (successMessage) {
+                const popup = document.getElementById('successPopup');
+                const text = document.getElementById('successMessageText');
+                text.textContent = successMessage;
+                popup.style.display = 'block';
+                setTimeout(() => popup.style.display = 'none', 3500);
+            }
         });
     </script>
+
+    <partial name="_ValidationScriptsPartial" />
 </body>
 </html>

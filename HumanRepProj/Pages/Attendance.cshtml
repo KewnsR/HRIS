@@ -66,11 +66,6 @@
             <button type="button" class="btn btn-sm btn-outline-primary">
                 <i class="bi bi-download"></i> Export Attendance
             </button>
-            <a href="/Attendance/RecordAttendance"
-               target="_blank"
-               class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-camera"></i> Record Attendance
-            </a>
         </div>
     </div>
 
@@ -164,8 +159,9 @@
                         <tr>
                             <th>Employee</th>
                             <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
                             <th>Status</th>
-                            <th>Remarks</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -174,6 +170,8 @@
                             <tr>
                                 <td>@record.Employee.FullName</td>
                                 <td>@record.AttendanceDate.ToString("MMMM dd, yyyy")</td>
+                                <td>@(record.TimeIn?.ToString() ?? "-")</td>
+                                <td>@(record.TimeOut?.ToString() ?? "-")</td>
                                 <td>
                                     <span class="badge badge-status
                                         @(record.Status == "Present" ? "bg-success" :
@@ -182,7 +180,6 @@
                                         @record.Status
                                     </span>
                                 </td>
-                                <td>On time</td>
                             </tr>
                         }
                     </tbody>

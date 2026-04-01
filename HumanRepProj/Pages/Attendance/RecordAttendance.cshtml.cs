@@ -5,8 +5,6 @@ using Microsoft.Extensions.Logging;
 using HumanRepProj.Data;
 using HumanRepProj.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,79 +23,82 @@ namespace HumanRepProj.Pages.Attendance
             _context = context;
         }
 
-        [BindProperty]
-        public DateTime SelectedDate { get; set; } = DateTime.Today;
+        public int EmployeeId { get; set; }
+        public string EmployeeName { get; set; } = "Employee";
+        public AttendanceRecord? TodayRecord { get; set; }
+        public bool AttendanceCompleted => TodayRecord?.TimeIn.HasValue == true && TodayRecord?.TimeOut.HasValue == true;
 
-        public List<AttendanceRecord> AttendanceRecords { get; set; } = new();
-        public List<Employee> Employees { get; set; } = new();
-
-        public async Task<IActionResult> OnGetAsync(DateTime? date)
+        public async Task<IActionResult> OnGetAsync()
         {
-            var userEmail = HttpContext.Session.GetString("Username");
-
-            if (string.IsNullOrEmpty(userEmail))
+            var sessionEmployeeId = HttpContext.Session.GetInt32("EmployeeID");
+            if (!sessionEmployeeId.HasValue || sessionEmployeeId.Value <= 0)
             {
-                _logger.LogWarning("Session expired or user not logged in.");
-                return RedirectToPage("/Login");
+                _logger.LogWarning("Unauthorized access to RecordAttendance without employee session.");
+                return RedirectToPage("/UserLogin");
             }
 
-            _logger.LogInformation($"User {userEmail} accessed the Record Attendance page.");
+            EmployeeId = sessionEmployeeId.Value;
+            EmployeeName = HttpContext.Session.GetString("FullName") ?? HttpContext.Session.GetString("UserName") ?? "Employee";
 
-            SelectedDate = date ?? DateTime.Today;
+            var today = DateTime.Today;
+            TodayRecord = await _context.AttendanceRecords
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.EmployeeID == EmployeeId && a.AttendanceDate.Date == today.Date);
 
-            // Load attendance records for selected date
-            AttendanceRecords = await _context.AttendanceRecords
-                .Include(a => a.Employee)
-                .Where(a => a.AttendanceDate.Date == SelectedDate.Date)
-                .ToListAsync();
-
-            // Load all employees for dropdown
-            Employees = await _context.Employees.ToListAsync();
+            _logger.LogInformation("Employee {EmployeeId} accessed their attendance page.", EmployeeId);
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(int employeeId, string status)
+        public async Task<IActionResult> OnPostAsync()
         {
-            var userEmail = HttpContext.Session.GetString("Username");
-
-            if (string.IsNullOrEmpty(userEmail))
+            var sessionEmployeeId = HttpContext.Session.GetInt32("EmployeeID");
+            if (!sessionEmployeeId.HasValue || sessionEmployeeId.Value <= 0)
             {
-                _logger.LogWarning("Session expired or user not logged in.");
-                return RedirectToPage("/Login");
+                _logger.LogWarning("Unauthorized attendance post without employee session.");
+                return RedirectToPage("/UserLogin");
             }
 
-            if (employeeId <= 0 || string.IsNullOrEmpty(status))
-            {
-                ModelState.AddModelError("", "Please select a valid employee and status.");
-                return Page();
-            }
+            var employeeId = sessionEmployeeId.Value;
 
             var today = DateTime.Today;
+            var now = DateTime.UtcNow;
+            var nowTime = now.TimeOfDay;
 
-            // Check if record already exists
             var existingRecord = await _context.AttendanceRecords
                 .FirstOrDefaultAsync(r => r.EmployeeID == employeeId && r.AttendanceDate.Date == today.Date);
 
-            if (existingRecord != null)
+            if (existingRecord == null)
             {
-                // Update existing record
-                existingRecord.Status = status;
-                existingRecord.AttendanceDate = today;
-                _context.AttendanceRecords.Update(existingRecord);
-                _logger.LogInformation($"Attendance record updated for Employee ID {employeeId}");
-            }
-            else
-            {
-                // Create new record
                 var newRecord = new AttendanceRecord
                 {
                     EmployeeID = employeeId,
-                    Status = status,
-                    AttendanceDate = today
+                    AttendanceDate = today,
+                    TimeIn = nowTime,
+                    Status = "Present",
+                    CreatedAt = now,
+                    UpdatedAt = now
                 };
+
                 await _context.AttendanceRecords.AddAsync(newRecord);
-                _logger.LogInformation($"New attendance record added for Employee ID {employeeId}");
+                _logger.LogInformation("Employee {EmployeeId} checked in via page post.", employeeId);
+                TempData["AttendanceMessage"] = "Manual check-in recorded.";
+            }
+            else
+            {
+                if (!existingRecord.TimeOut.HasValue)
+                {
+                    existingRecord.TimeOut = nowTime;
+                    existingRecord.UpdatedAt = now;
+                    _context.AttendanceRecords.Update(existingRecord);
+                    _logger.LogInformation("Employee {EmployeeId} checked out via page post.", employeeId);
+                    TempData["AttendanceMessage"] = "Manual check-out recorded.";
+                }
+                else
+                {
+                    TempData["AttendanceMessage"] = "You have already completed check-in and check-out today.";
+                    return RedirectToPage();
+                }
             }
 
             await _context.SaveChangesAsync();

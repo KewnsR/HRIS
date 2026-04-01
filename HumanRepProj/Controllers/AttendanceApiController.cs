@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using HumanRepProj.Data;
 using HumanRepProj.Models;
 using Microsoft.ML.OnnxRuntime;
@@ -37,29 +38,87 @@ namespace HumanRepProj.Controllers
         [HttpPost("log")]
         public async Task<IActionResult> LogAttendance([FromBody] AttendanceDto dto)
         {
+            var sessionEmployeeId = HttpContext.Session.GetInt32("EmployeeID");
+            if (!sessionEmployeeId.HasValue || sessionEmployeeId.Value <= 0)
+            {
+                return Unauthorized(new { success = false, message = "Employee session is required." });
+            }
+
+            if (dto.EmployeeId != sessionEmployeeId.Value)
+            {
+                return Forbid();
+            }
+
             var employee = await _context.Employees.FindAsync(dto.EmployeeId);
             if (employee == null)
                 return NotFound("Employee not found");
 
-            var attendance = new AttendanceRecord
+            var today = DateTime.UtcNow.Date;
+            var now = DateTime.UtcNow;
+
+            var attendance = await _context.AttendanceRecords
+                .FirstOrDefaultAsync(a => a.EmployeeID == dto.EmployeeId && a.AttendanceDate == today);
+
+            if (attendance == null)
             {
-                EmployeeID = dto.EmployeeId,
-                AttendanceDate = DateTime.UtcNow.Date,
-                Status = "Present",
-                TimeIn = DateTime.UtcNow.TimeOfDay,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                attendance = new AttendanceRecord
+                {
+                    EmployeeID = dto.EmployeeId,
+                    AttendanceDate = today,
+                    Status = "Present",
+                    TimeIn = now.TimeOfDay,
+                    CreatedAt = now,
+                    UpdatedAt = now
+                };
 
-            _context.AttendanceRecords.Add(attendance);
-            await _context.SaveChangesAsync();
+                _context.AttendanceRecords.Add(attendance);
+                await _context.SaveChangesAsync();
+                return Ok(new
+                {
+                    success = true,
+                    action = "check-in",
+                    message = "Checked in successfully.",
+                    time = attendance.TimeIn?.ToString(@"hh\:mm\:ss")
+                });
+            }
 
-            return Ok(new { success = true });
+            if (!attendance.TimeOut.HasValue)
+            {
+                attendance.TimeOut = now.TimeOfDay;
+                attendance.UpdatedAt = now;
+                _context.AttendanceRecords.Update(attendance);
+                await _context.SaveChangesAsync();
+                return Ok(new
+                {
+                    success = true,
+                    action = "check-out",
+                    message = "Checked out successfully.",
+                    time = attendance.TimeOut?.ToString(@"hh\:mm\:ss")
+                });
+            }
+
+            return BadRequest(new
+            {
+                success = false,
+                action = "completed",
+                message = "Attendance already completed for today."
+            });
         }
 
         [HttpPost("verify-face")]
         public async Task<IActionResult> VerifyFace([FromBody] FaceVerifyDto dto)
         {
+            var sessionEmployeeId = HttpContext.Session.GetInt32("EmployeeID");
+            if (!sessionEmployeeId.HasValue || sessionEmployeeId.Value <= 0)
+            {
+                return Unauthorized("Employee session is required");
+            }
+
+            if (dto.EmployeeId != sessionEmployeeId.Value)
+            {
+                return Forbid();
+            }
+
             // 1. Face Detection
             var detectionResult = await DetectFace(dto.Image);
             var detectionValue = detectionResult.Value;
