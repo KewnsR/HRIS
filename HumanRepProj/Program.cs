@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.ML.OnnxRuntime;
+using System.Security.Cryptography;
+using System.Text;
 using HumanRepProj.Data;
 using HumanRepProj.HealthChecks;
 using HumanRepProj.Models;
@@ -47,7 +49,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 // Health checks
@@ -111,9 +113,9 @@ async Task EnsureDatabaseCreated(IServiceProvider services, ILogger logger)
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     try
     {
-        logger.LogInformation("Ensuring local database exists...");
-        await dbContext.Database.EnsureCreatedAsync();
-        logger.LogInformation("Database is ready");
+        logger.LogInformation("Applying database migrations...");
+        await dbContext.Database.MigrateAsync();
+        logger.LogInformation("Database migrations applied successfully");
     }
     catch (Exception ex)
     {
@@ -150,14 +152,7 @@ async Task ResetAccountsAndCreateAdmin(IServiceProvider services, ILogger logger
 
     try
     {
-        logger.LogInformation("Resetting existing application accounts...");
-
-        var existingUsers = await dbContext.ApplicationUsers.ToListAsync();
-        if (existingUsers.Count > 0)
-        {
-            dbContext.ApplicationUsers.RemoveRange(existingUsers);
-            await dbContext.SaveChangesAsync();
-        }
+        logger.LogInformation("Ensuring admin account exists without resetting existing users...");
 
         var adminDepartment = await dbContext.Departments.FirstOrDefaultAsync(d => d.Name == "Administration");
         if (adminDepartment == null)
@@ -201,21 +196,37 @@ async Task ResetAccountsAndCreateAdmin(IServiceProvider services, ILogger logger
             await dbContext.SaveChangesAsync();
         }
 
-        dbContext.ApplicationUsers.Add(new ApplicationUser
-        {
-            EmployeeID = adminEmployee.EmployeeID,
-            Username = "admin",
-            Password = "admin@123",
-            LastLogin = null,
-            FailedAttempts = 0,
-            IsLocked = false
-        });
+        var adminUser = await dbContext.ApplicationUsers
+            .FirstOrDefaultAsync(u => u.Username.ToLower() == "admin");
 
-        await dbContext.SaveChangesAsync();
-        logger.LogInformation("Admin account is ready. Username: admin");
+        if (adminUser == null)
+        {
+            dbContext.ApplicationUsers.Add(new ApplicationUser
+            {
+                EmployeeID = adminEmployee.EmployeeID,
+                Username = "admin",
+                Password = HashPassword("admin"),
+                LastLogin = null,
+                FailedAttempts = 0,
+                IsLocked = false
+            });
+
+            await dbContext.SaveChangesAsync();
+            logger.LogInformation("Admin account created. Username: admin");
+        }
+        else
+        {
+            logger.LogInformation("Admin account already exists. Existing employee accounts preserved.");
+        }
     }
     catch (Exception ex)
     {
         logger.LogError(ex, "Failed to reset accounts and create admin user");
     }
+}
+
+static string HashPassword(string plainTextPassword)
+{
+    var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(plainTextPassword));
+    return Convert.ToHexString(bytes);
 }

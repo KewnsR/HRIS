@@ -5,8 +5,14 @@ namespace HumanRepProj.Pages
 {
     public class UserLoanRequestModel : PageModel
     {
-        public void OnGet()
+        public IActionResult OnGet()
         {
+            if (string.IsNullOrWhiteSpace(HttpContext.Session.GetString("UserName")))
+            {
+                return RedirectToPage("/UserLogin");
+            }
+
+            return Page();
         }
     }
 }

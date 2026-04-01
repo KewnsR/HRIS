@@ -55,6 +55,34 @@
             padding: 30px;
         }
 
+        .portal-switch {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .portal-chip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid #dbe3f0;
+            color: #334155;
+            background: #f8fafc;
+        }
+
+        .portal-chip.active {
+            border-color: #1D2024;
+            background: #1D2024;
+            color: #fff;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -153,6 +181,11 @@
             <p>Admin Login</p>
         </div>
         <div class="card-body">
+            <div class="portal-switch" aria-label="Select login portal">
+                <span class="portal-chip active"><i class="fas fa-user-shield"></i> Admin</span>
+                <a href="/UserLogin" class="portal-chip"><i class="fas fa-user"></i> Employee</a>
+            </div>
+
             <form method="post">
                 <div class="form-group">
                     <label for="username">Email or Username</label>
@@ -178,6 +211,10 @@
                 <button type="submit" class="btn-login">
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
+
+                <div style="margin-top: 14px; text-align: center; color: #64748b; font-size: 13px;">
+                    Admin account only
+                </div>
 
                 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                 {

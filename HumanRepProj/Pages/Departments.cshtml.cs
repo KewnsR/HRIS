@@ -1,5 +1,6 @@
 ﻿using HumanRepProj.Data;
 using HumanRepProj.Models;
+using HumanRepProj.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace HumanRepProj.Pages
 {
@@ -68,7 +70,7 @@ namespace HumanRepProj.Pages
             public decimal Performance { get; set; }
 
             [DataType(DataType.Date)]
-            public DateTime DateCreated { get; set; } = DateTime.Now;
+            public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
             [Range(0, double.MaxValue, ErrorMessage = "Budget must be a positive value.")]
             public decimal Budget { get; set; }
@@ -81,13 +83,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnGetAsync(int? departmentId = null)
         {
-            var userEmail = HttpContext.Session.GetString("Username");
-            if (string.IsNullOrEmpty(userEmail))
+            var guardResult = AdminSessionGuard.EnsureAdmin(this, _logger);
+            if (guardResult != null)
             {
-                _logger.LogWarning("Session expired or user not logged in.");
-                return RedirectToPage("/Login");
+                return guardResult;
             }
-            _logger.LogInformation($"User {userEmail} accessed the Departments page.");
+            _logger.LogInformation("Admin user {Username} accessed the Departments page.", AdminSessionGuard.GetUsername(HttpContext));
 
             // Load all departments for display
             await LoadDepartments();
@@ -124,7 +125,7 @@ namespace HumanRepProj.Pages
 
             Input ??= new DepartmentInputModel
             {
-                DateCreated = DateTime.Today,
+                DateCreated = DateTime.UtcNow,
                 Status = "Active"
             };
 
@@ -176,13 +177,19 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnPostCreateAsync()
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this, _logger);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             Input ??= new DepartmentInputModel();
             Input.Name = (Input.Name ?? string.Empty).Trim();
             Input.Status = string.IsNullOrWhiteSpace(Input.Status) ? "Active" : Input.Status.Trim();
 
             if (Input.DateCreated == default)
             {
-                Input.DateCreated = DateTime.Today;
+                Input.DateCreated = DateTime.UtcNow;
             }
 
             if (string.IsNullOrWhiteSpace(Input.Name))
@@ -242,6 +249,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnPostEditAsync()
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this, _logger);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             if (!ModelState.IsValid)
             {
                 await LoadDepartments();
@@ -286,6 +299,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this, _logger);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             var department = await _context.Departments.FindAsync(id);
 
             if (department != null)
@@ -314,6 +333,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnPostAssignManagerAsync()
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this, _logger);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             if (!SelectedDepartmentId.HasValue || !SelectedManagerId.HasValue)
             {
                 TempData["ErrorMessage"] = "Both department and manager must be selected.";
@@ -385,6 +410,11 @@ namespace HumanRepProj.Pages
 
         public async Task<JsonResult> OnGetDepartmentDetailsAsync(int id)
         {
+            if (!AdminSessionGuard.IsAdmin(HttpContext))
+            {
+                return new JsonResult(new { success = false, message = "Unauthorized." });
+            }
+
             var department = await _context.Departments.FindAsync(id);
             if (department == null)
             {
@@ -410,6 +440,11 @@ namespace HumanRepProj.Pages
 
         public async Task<JsonResult> OnGetDepartmentEmployeesAsync(int departmentId)
         {
+            if (!AdminSessionGuard.IsAdmin(HttpContext))
+            {
+                return new JsonResult(new { success = false, message = "Unauthorized." });
+            }
+
             var employees = await _context.Employees
                 .Where(e => e.DepartmentID == departmentId)
                 .Select(e => new
@@ -427,6 +462,11 @@ namespace HumanRepProj.Pages
 
         public async Task<JsonResult> OnGetPotentialManagersAsync(int departmentId)
         {
+            if (!AdminSessionGuard.IsAdmin(HttpContext))
+            {
+                return new JsonResult(new { success = false, message = "Unauthorized." });
+            }
+
             var managers = await _context.Employees
                 .Where(e => e.DepartmentID == departmentId && !e.IsManager)
                 .Select(e => new

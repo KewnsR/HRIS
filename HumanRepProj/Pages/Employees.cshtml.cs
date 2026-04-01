@@ -1,9 +1,12 @@
 ﻿using HumanRepProj.Data;
 using HumanRepProj.Models;
+using HumanRepProj.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -25,6 +28,7 @@ namespace HumanRepProj.Pages
 
         public PaginatedList<Employee> Employees { get; private set; } = null!;
         public int TotalPages { get; private set; }
+        public bool IsAdmin { get; private set; }
 
         [BindProperty(SupportsGet = true)]
         public int CurrentPage { get; set; } = 1;
@@ -40,10 +44,18 @@ namespace HumanRepProj.Pages
         [TempData]
         public string? StatusMessage { get; set; }
 
-        public async Task OnGetAsync()
+        public async Task<IActionResult> OnGetAsync()
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
+            IsAdmin = true;
             var employeesQuery = BuildQuery();
             await LoadEmployeesAsync(employeesQuery);
+            return Page();
         }
 
         private IQueryable<Employee> BuildQuery()
@@ -82,6 +94,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnPostToggleStatusAsync(int id)
         {
+            if (!IsCurrentUserAdmin())
+            {
+                StatusMessage = "Only administrators can change employee status.";
+                return RedirectToPage(new { CurrentPage, SearchTerm });
+            }
+
             var employee = await _context.Employees.FindAsync(id);
             if (employee == null)
             {
@@ -107,6 +125,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
+            if (!IsCurrentUserAdmin())
+            {
+                StatusMessage = "Only administrators can delete employees.";
+                return RedirectToPage(new { CurrentPage, SearchTerm });
+            }
+
             var employee = await _context.Employees.FindAsync(id);
             if (employee == null)
             {
@@ -120,13 +144,111 @@ namespace HumanRepProj.Pages
             return RedirectToPage(new { CurrentPage, SearchTerm });
         }
 
+        public async Task<IActionResult> OnPostResetPasswordAsync(int id)
+        {
+            if (!IsCurrentUserAdmin())
+            {
+                StatusMessage = "Only administrators can reset employee passwords.";
+                return RedirectToPage(new { CurrentPage, SearchTerm });
+            }
+
+            var employee = await _context.Employees.FindAsync(id);
+            if (employee == null)
+            {
+                StatusMessage = "Employee not found.";
+                return RedirectToPage(new { CurrentPage, SearchTerm });
+            }
+
+            var user = await _context.ApplicationUsers
+                .FirstOrDefaultAsync(u => u.EmployeeID == id);
+
+            if (user == null)
+            {
+                var baseUsername = BuildBaseUsername(employee);
+                var username = await GenerateUniqueUsernameAsync(baseUsername);
+
+                user = new ApplicationUser
+                {
+                    EmployeeID = employee.EmployeeID,
+                    Username = username,
+                    Password = string.Empty,
+                    FailedAttempts = 0,
+                    IsLocked = false
+                };
+
+                _context.ApplicationUsers.Add(user);
+            }
+
+            const string temporaryPassword = "Password123!";
+            user.Password = HashPassword(temporaryPassword);
+            user.FailedAttempts = 0;
+            user.IsLocked = false;
+
+            await _context.SaveChangesAsync();
+
+            StatusMessage = $"Password reset for {employee.FullName} (username: {user.Username}). Temporary password: {temporaryPassword}";
+            return RedirectToPage(new { CurrentPage, SearchTerm });
+        }
+
+        private static string BuildBaseUsername(Employee employee)
+        {
+            if (!string.IsNullOrWhiteSpace(employee.Email) && employee.Email.Contains('@'))
+            {
+                return employee.Email.Split('@')[0].ToLowerInvariant();
+            }
+
+            var first = (employee.FirstName ?? string.Empty).Trim().ToLowerInvariant();
+            var last = (employee.LastName ?? string.Empty).Trim().ToLowerInvariant();
+            var baseName = $"{first}.{last}".Trim('.');
+
+            return string.IsNullOrWhiteSpace(baseName) ? $"emp{employee.EmployeeID}" : baseName;
+        }
+
+        private async Task<string> GenerateUniqueUsernameAsync(string baseUsername)
+        {
+            var sanitizedBase = string.IsNullOrWhiteSpace(baseUsername) ? "employee" : baseUsername;
+            var candidate = sanitizedBase;
+            var suffix = 1;
+
+            while (await _context.ApplicationUsers.AnyAsync(u => u.Username.ToLower() == candidate.ToLower()))
+            {
+                candidate = $"{sanitizedBase}{suffix}";
+                suffix++;
+            }
+
+            return candidate;
+        }
+
         public IActionResult OnPostAddEmployee()
         {
+            if (!IsCurrentUserAdmin())
+            {
+                StatusMessage = "Only administrators can add employees.";
+                return RedirectToPage(new { CurrentPage, SearchTerm });
+            }
+
             return RedirectToPage("/UserRegister");
         }
 
+        private bool IsCurrentUserAdmin()
+        {
+            return AdminSessionGuard.IsAdmin(HttpContext);
+        }
+
+            private static string HashPassword(string plainTextPassword)
+            {
+                var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(plainTextPassword));
+                return Convert.ToHexString(bytes);
+            }
+
         public async Task<IActionResult> OnPostDeletePlaceholderEmployeesAsync()
         {
+            if (!IsCurrentUserAdmin())
+            {
+                StatusMessage = "Only administrators can delete placeholder employees.";
+                return RedirectToPage(new { CurrentPage, SearchTerm });
+            }
+
             var fakeFirstNames = new[] { "john", "jane", "test", "demo", "sample", "dummy" };
             var fakeLastNames = new[] { "doe", "smith", "user", "employee", "test", "sample" };
 

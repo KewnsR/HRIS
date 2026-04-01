@@ -31,10 +31,10 @@ namespace HumanRepProj.Data.Configurations
 
             // Timestamps
             builder.Property(a => a.CreatedAt)
-                .HasColumnType("datetime2")
+                .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             builder.Property(a => a.UpdatedAt)
-                .HasColumnType("datetime2")
+                .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             // Relationships

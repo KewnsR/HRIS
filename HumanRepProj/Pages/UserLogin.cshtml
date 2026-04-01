@@ -52,6 +52,34 @@
         padding: 30px;
     }
 
+    .portal-switch {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .portal-chip {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid #dbe3f0;
+        color: #334155;
+        background: #f8fafc;
+    }
+
+    .portal-chip.active {
+        border-color: #1D2024;
+        background: #1D2024;
+        color: #fff;
+    }
+
     .form-floating > .form-control {
         border-radius: 10px;
         padding: 12px 15px;
@@ -103,9 +131,14 @@
     <div class="card-header">
         <h3>Welcome Back</h3>
         <p>Human Resource Information System</p>
-		<p>User Login</p>
+		<p>Employee Login</p>
     </div>
     <div class="card-body">
+        <div class="portal-switch" aria-label="Select login portal">
+            <a href="/Login" class="portal-chip"><i class="fas fa-user-shield"></i> Admin</a>
+            <span class="portal-chip active"><i class="fas fa-user"></i> Employee</span>
+        </div>
+
         @if (!string.IsNullOrEmpty(Model.SuccessMessage))
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -150,10 +183,7 @@
             </button>
 
             <div class="text-center mt-4">
-                <p class="mb-0">
-                    Don't have an account?
-                    <a asp-page="/UserRegister" class="create-account-link">Create Account</a>
-                </p>
+                <p class="mb-0 text-muted">Account creation is managed by the administrator.</p>
             </div>
         </form>
     </div>

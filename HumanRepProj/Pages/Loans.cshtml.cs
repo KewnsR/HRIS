@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HumanRepProj.Data;
+using System;
+using System.Linq;
 
 namespace HumanRepProj.Pages
 {
@@ -14,6 +17,8 @@ namespace HumanRepProj.Pages
         public LoansModel(ApplicationDbContext context)
         {
             _context = context;
+            Loan = new Loans();
+            LoansList = new List<Loans>();
         }
 
         [BindProperty]
@@ -23,13 +28,16 @@ namespace HumanRepProj.Pages
 
         public async Task OnGetAsync()
         {
-            LoansList = await _context.Loans.ToListAsync();
+            await LoadLoansAsync();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            Loan ??= new Loans();
+
             if (!ModelState.IsValid)
             {
+                await LoadLoansAsync();
                 return Page();
             }
 
@@ -41,6 +49,20 @@ namespace HumanRepProj.Pages
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Loans"); // Refresh page
+        }
+
+        public async Task<IActionResult> OnPostLogoutAsync()
+        {
+            HttpContext.Session.Clear();
+            await HttpContext.SignOutAsync();
+            return RedirectToPage("/Login");
+        }
+
+        private async Task LoadLoansAsync()
+        {
+            LoansList = await _context.Loans
+                .OrderByDescending(l => l.DateIssued)
+                .ToListAsync();
         }
     }
 }

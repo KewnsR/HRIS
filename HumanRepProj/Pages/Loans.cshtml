@@ -40,22 +40,31 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var loan in Model.LoansList)
+                @if (Model.LoansList != null && Model.LoansList.Any())
+                {
+                    @foreach (var loan in Model.LoansList)
+                    {
+                        <tr>
+                            <td>@loan.LoanID</td>
+                            <td>@loan.EmployeeID</td>
+                            <td>@loan.LoanType</td>
+                            <td>@loan.LoanAmount.ToString("C")</td>
+                            <td>@loan.PaidLoan.ToString("C")</td>
+                            <td>@loan.LoanStatus</td>
+                            <td>@loan.DateIssued.ToShortDateString()</td>
+                            <td>@loan.DueDate.ToShortDateString()</td>
+                            <td>@loan.LoanTerm months</td>
+                            <td>
+                                <a asp-page="./EditLoan" asp-route-id="@loan.LoanID" class="btn btn-sm btn-primary">Edit</a>
+                                <a asp-page="./DeleteLoan" asp-route-id="@loan.LoanID" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td>@loan.LoanID</td>
-                        <td>@loan.EmployeeID</td>
-                        <td>@loan.LoanType</td>
-                        <td>@loan.LoanAmount.ToString("C")</td>
-                        <td>@loan.PaidLoan.ToString("C")</td>
-                        <td>@loan.LoanStatus</td>
-                        <td>@loan.DateIssued.ToShortDateString()</td>
-                        <td>@loan.DueDate.ToShortDateString()</td>
-                        <td>@loan.LoanTerm months</td>
-                        <td>
-                            <a asp-page="./EditLoan" asp-route-id="@loan.LoanID" class="btn btn-sm btn-primary">Edit</a>
-                            <a asp-page="./DeleteLoan" asp-route-id="@loan.LoanID" class="btn btn-sm btn-danger">Delete</a>
-                        </td>
+                        <td colspan="10" class="text-center text-muted">No loans found.</td>
                     </tr>
                 }
             </tbody>

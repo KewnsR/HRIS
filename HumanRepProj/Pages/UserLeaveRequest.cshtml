@@ -55,8 +55,8 @@
         /* Sidebar - Fixed to match reference image */
         .sidebar {
             width: var(--sidebar-width);
-            background-color: white;
-            color: #475569;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
@@ -69,19 +69,19 @@
             overflow-x: hidden;
             overflow-y: auto;
             padding: 1.5rem;
-            border-right: 1px solid #e2e8f0;
+            border-right: 1px solid rgba(148, 163, 184, 0.24);
         }
 
         .sidebar-header {
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.24);
         }
 
         .brand {
             font-size: 1.25rem;
             font-weight: 700;
-            color: var(--dark);
+            color: #f8fafc;
             text-align: center;
         }
 
@@ -91,17 +91,18 @@
             gap: 0.25rem;
             margin-bottom: 2rem;
             padding-bottom: 2rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.24);
             text-align: center;
         }
 
         .user-name {
             font-size: 1.125rem;
             font-weight: 600;
+            color: #f8fafc;
         }
 
         .user-role {
-            color: var(--secondary);
+            color: #94a3b8;
             font-size: 0.875rem;
         }
 
@@ -109,9 +110,9 @@
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.05em;
-            color: var(--secondary);
+            color: #93c5fd;
             margin-bottom: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             padding-left: 0.75rem;
         }
 
@@ -129,15 +130,20 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0.75rem;
-            color: #475569;
+            color: rgba(226, 232, 240, 0.92);
             text-decoration: none;
             transition: var(--transition);
             border-radius: var(--border-radius);
         }
 
+        .sidebar-nav a:hover {
+            background-color: rgba(59, 130, 246, 0.18);
+            color: #ffffff;
+        }
+
             .sidebar-nav a.active {
-                background-color: var(--primary-light);
-                color: var(--primary);
+                background-color: rgba(59, 130, 246, 0.3);
+                color: #ffffff;
                 font-weight: 600;
             }
 
@@ -149,7 +155,7 @@
         .sidebar-footer {
             margin-top: auto;
             padding-top: 1rem;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid rgba(148, 163, 184, 0.24);
         }
 
             .sidebar-footer a {
@@ -157,14 +163,15 @@
                 align-items: center;
                 gap: 0.75rem;
                 padding: 0.75rem;
-                color: #475569;
+                color: rgba(226, 232, 240, 0.92);
                 text-decoration: none;
                 transition: var(--transition);
                 border-radius: var(--border-radius);
             }
 
                 .sidebar-footer a:hover {
-                    background-color: #f1f5f9;
+                    background-color: rgba(239, 68, 68, 0.22);
+                    color: #ffffff;
                 }
 
         /* Main Content */
@@ -173,6 +180,7 @@
             margin-left: var(--sidebar-width);
             display: flex;
             flex-direction: column;
+            min-width: 0;
         }
 
         /* Top Navigation */
@@ -187,6 +195,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .search-bar {
@@ -209,7 +218,9 @@
 
         /* Content Container */
         .content-container {
-            padding: 2rem;
+            width: min(1200px, 100%);
+            margin: 0 auto;
+            padding: 1.75rem 2rem 2rem;
             flex-grow: 1;
         }
 
@@ -447,7 +458,7 @@
             </div>
 
             <div class="sidebar-user">
-                <div class="user-name">Lebron James</div>
+                <div class="user-name">@(HttpContext.Session.GetString("FullName") ?? HttpContext.Session.GetString("UserName") ?? "Employee")</div>
                 <div class="user-role">Employee</div>
             </div>
 
@@ -455,25 +466,25 @@
                 <p class="nav-title">Main Menu</p>
                 <ul>
                     <li>
-                        <a href="/UserDashboard">
+                        <a asp-page="/UserDashboard">
                             <i class="fas fa-th-large"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/UserProfile">
+                        <a asp-page="/UserProfile">
                             <i class="fas fa-user"></i>
                             <span>My Profile</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/UserLeaveRequest" class="active">
+                        <a asp-page="/UserLeaveRequest" class="active">
                             <i class="fas fa-calendar-alt"></i>
                             <span>Leave Request</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/UserLoanRequest">
+                        <a asp-page="/UserLoanRequest">
                             <i class="fas fa-hand-holding-usd"></i>
                             <span>Loan Request</span>
                         </a>
@@ -630,9 +641,12 @@
             sidebarToggle.style.fontSize = '1.25rem';
             sidebarToggle.style.cursor = 'pointer';
 
-            const topNavLeft = document.createElement('div');
-            topNavLeft.appendChild(sidebarToggle);
-            document.querySelector('.top-nav').prepend(topNavLeft);
+            const topNav = document.querySelector('.top-nav');
+            if (topNav) {
+                const topNavLeft = document.createElement('div');
+                topNavLeft.appendChild(sidebarToggle);
+                topNav.prepend(topNavLeft);
+            }
 
             const sidebar = document.querySelector('.sidebar');
 

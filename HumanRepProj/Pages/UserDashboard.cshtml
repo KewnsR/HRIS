@@ -1,7 +1,7 @@
 ﻿@page
 @model HumanRepProj.Pages.UserDashboardModel
 @{
-    ViewData["Title"] = "User Dashboard";
+    ViewData["Title"] = "Employee Dashboard";
     string currentPath = HttpContext.Request.Path;
 }
 
@@ -14,14 +14,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --primary-light: #eef2ff;
-            --secondary: #64748b;
+            --primary: #0f4c81;
+            --primary-hover: #0c3f6b;
+            --primary-light: #e6f0f9;
+            --secondary: #5f6c82;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --info: #3b82f6;
+            --info: #2563eb;
             --dark: #0f172a;
             --light: #f8fafc;
             --sidebar-width: 280px;
@@ -29,6 +29,7 @@
             --transition: all 0.3s ease;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 14px 40px rgba(15, 23, 42, 0.08);
             --border-radius: 0.5rem;
         }
 
@@ -40,7 +41,7 @@
         }
 
         body {
-            background-color: #f9fafb;
+            background: radial-gradient(circle at 20% 0%, #f5f9ff 0%, #eef2f7 48%, #edf1f8 100%);
             color: #1e293b;
             font-size: 0.875rem;
         }
@@ -54,8 +55,8 @@
         /* Consistent Sidebar UI */
         .sidebar {
             width: var(--sidebar-width);
-            background-color: white;
-            color: #475569;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
@@ -68,19 +69,19 @@
             overflow-x: hidden;
             overflow-y: auto;
             padding: 1.5rem;
-            border-right: 1px solid #e2e8f0;
+            border-right: 1px solid rgba(148, 163, 184, 0.24);
         }
 
         .sidebar-header {
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.24);
         }
 
         .brand {
             font-size: 1.25rem;
             font-weight: 700;
-            color: var(--dark);
+            color: #f8fafc;
             text-align: center;
         }
 
@@ -90,17 +91,18 @@
             gap: 0.25rem;
             margin-bottom: 2rem;
             padding-bottom: 2rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.24);
             text-align: center;
         }
 
         .user-name {
             font-size: 1.125rem;
             font-weight: 600;
+            color: #f8fafc;
         }
 
         .user-role {
-            color: var(--secondary);
+            color: #94a3b8;
             font-size: 0.875rem;
         }
 
@@ -108,9 +110,9 @@
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.05em;
-            color: var(--secondary);
+            color: #93c5fd;
             margin-bottom: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             padding-left: 0.75rem;
         }
 
@@ -128,15 +130,20 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0.75rem;
-            color: #475569;
+            color: rgba(226, 232, 240, 0.92);
             text-decoration: none;
             transition: var(--transition);
             border-radius: var(--border-radius);
         }
 
+        .sidebar-nav a:hover {
+            background-color: rgba(59, 130, 246, 0.18);
+            color: #ffffff;
+        }
+
             .sidebar-nav a.active {
-                background-color: var(--primary-light);
-                color: var(--primary);
+                background-color: rgba(59, 130, 246, 0.3);
+                color: #ffffff;
                 font-weight: 600;
             }
 
@@ -148,7 +155,7 @@
         .sidebar-footer {
             margin-top: auto;
             padding-top: 1rem;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid rgba(148, 163, 184, 0.24);
         }
 
             .sidebar-footer a {
@@ -156,14 +163,15 @@
                 align-items: center;
                 gap: 0.75rem;
                 padding: 0.75rem;
-                color: #475569;
+                color: rgba(226, 232, 240, 0.92);
                 text-decoration: none;
                 transition: var(--transition);
                 border-radius: var(--border-radius);
             }
 
                 .sidebar-footer a:hover {
-                    background-color: #f1f5f9;
+                    background-color: rgba(239, 68, 68, 0.22);
+                    color: #ffffff;
                 }
 
         /* Main Content */
@@ -172,20 +180,50 @@
             margin-left: var(--sidebar-width);
             display: flex;
             flex-direction: column;
+            min-width: 0;
+            min-height: 100vh;
         }
 
         /* Top Navigation */
         .top-nav {
             height: var(--header-height);
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(6px);
             box-shadow: var(--shadow);
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: space-between;
             padding: 0 2rem;
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .top-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid #c7ddf2;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .top-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .search-bar {
@@ -194,7 +232,8 @@
             background: #f1f5f9;
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
-            width: 300px;
+            width: min(360px, 100%);
+            border: 1px solid #dbe3ee;
         }
 
             .search-bar input {
@@ -208,34 +247,94 @@
 
         /* Content Container */
         .content-container {
-            padding: 2rem;
+            width: min(1280px, 100%);
+            margin: 0 auto;
+            padding: 2rem 2rem 2.25rem;
             flex-grow: 1;
+        }
+
+        .dashboard-shell {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .main-stack,
+        .side-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
         }
 
         /* Dashboard Specific Styles */
         .dashboard-header {
-            margin-bottom: 2rem;
+            margin-bottom: 0.2rem;
         }
 
             .dashboard-header h1 {
-                font-size: 1.5rem;
-                font-weight: 600;
-                margin-bottom: 0.5rem;
+                font-size: 1.9rem;
+                font-weight: 700;
+                letter-spacing: -0.015em;
+                margin-bottom: 0.35rem;
             }
+
+        .dashboard-header p {
+            color: #5b6b82;
+            font-size: 0.98rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quick-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            padding: 0.95rem 1rem;
+            color: #334155;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .quick-action:hover {
+            border-color: #bcd0e5;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            transform: translateY(-2px);
+        }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            gap: 1rem;
         }
 
         .stat-card {
+            display: block;
             background: white;
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-sm);
             padding: 1.5rem;
             text-align: center;
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: #cdd8e7;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
         }
 
         .stat-value {
@@ -253,7 +352,8 @@
         .activity-card {
             background: white;
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-sm);
             padding: 1.5rem;
         }
 
@@ -262,6 +362,66 @@
                 font-weight: 600;
                 margin-bottom: 1.5rem;
             }
+
+        .summary-card {
+            background: linear-gradient(145deg, #0f4c81 0%, #1a6aa9 100%);
+            border-radius: 14px;
+            color: #ffffff;
+            padding: 1.35rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .summary-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-meta {
+            display: grid;
+            gap: 0.65rem;
+            margin-top: 0.75rem;
+        }
+
+        .summary-meta-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            font-size: 0.84rem;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 0.65rem;
+        }
+
+        .tip-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 1.1rem 1.1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tip-card h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.55rem;
+            color: #0f172a;
+        }
+
+        .tip-card p {
+            margin: 0;
+            color: #5b6b82;
+            line-height: 1.5;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #0f172a;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
 
         .activity-item {
             padding: 1rem 0;
@@ -278,13 +438,13 @@
         }
 
         .activity-description {
-            color: var(--secondary);
+            color: #475569;
             margin-bottom: 0.5rem;
             font-size: 0.875rem;
         }
 
         .activity-time {
-            color: var(--secondary);
+            color: #64748b;
             font-size: 0.75rem;
             font-style: italic;
         }
@@ -395,16 +555,49 @@
             padding: 0 1rem;
         }
 
+        .sidebar-toggle {
+            display: inline-flex;
+        }
+
+        .section-pill {
+            display: none;
+        }
+
+        .top-nav-right {
+            flex: 1;
+        }
+
         .search-bar {
-            width: auto;
-            flex-grow: 1;
-            margin: 0 1rem;
+            width: 100%;
         }
 
         .content-container {
             padding: 1rem;
         }
 
+        .dashboard-shell {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.45rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        }
+
+        @@media (max-width: 520px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -417,33 +610,33 @@
             </div>
 
             <div class="sidebar-user">
-                <div class="user-name">Lebron James</div>
-                <div class="user-role">Employee</div>
+                <div class="user-name">@Model.FullName</div>
+                <div class="user-role">@Model.Role</div>
             </div>
 
             <nav class="sidebar-nav">
                 <p class="nav-title">Main Menu</p>
                 <ul>
                     <li>
-                        <a href="/UserDashboard" class="active">
+                        <a asp-page="/UserDashboard" class="active">
                             <i class="fas fa-th-large"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/UserProfile">
+                        <a asp-page="/UserProfile">
                             <i class="fas fa-user"></i>
                             <span>My Profile</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/UserLeaveRequest">
+                        <a asp-page="/UserLeaveRequest">
                             <i class="fas fa-calendar-alt"></i>
                             <span>Leave Request</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/UserLoanRequest">
+                        <a asp-page="/UserLoanRequest">
                             <i class="fas fa-hand-holding-usd"></i>
                             <span>Loan Request</span>
                         </a>
@@ -463,53 +656,94 @@
         <main class="main-content">
             <!-- Top Navigation -->
             <header class="top-nav">
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search...">
+                <div class="top-nav-left">
+                    <button type="button" class="sidebar-toggle" aria-label="Toggle menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="section-pill"><i class="fas fa-compass"></i> Employee Workspace</span>
+                </div>
+                <div class="top-nav-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search...">
+                    </div>
                 </div>
             </header>
 
             <!-- Page Content -->
             <div class="content-container">
-                <div class="dashboard-header">
-                    <h1>User Dashboard</h1>
-                </div>
+                <div class="dashboard-shell">
+                    <section class="main-stack">
+                        <div class="dashboard-header">
+                            <h1>Employee Dashboard</h1>
+                            <p>Welcome back, @Model.FullName. Here is a snapshot of your account today.</p>
+                        </div>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value">12</div>
-                        <div class="stat-label">Available Leave Days</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">3</div>
-                        <div class="stat-label">Pending Tasks</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">2</div>
-                        <div class="stat-label">Document Updates</div>
-                    </div>
-                </div>
+                        <div class="quick-actions">
+                            <a asp-page="/UserLeaveRequest" class="quick-action"><i class="fas fa-calendar-plus"></i> Request Leave</a>
+                            <a asp-page="/UserLoanRequest" class="quick-action"><i class="fas fa-file-invoice-dollar"></i> Apply Loan</a>
+                            <a asp-page="/UserProfile" class="quick-action"><i class="fas fa-id-badge"></i> Update Profile</a>
+                        </div>
 
-                <div class="activity-card">
-                    <h2>Recent Activities</h2>
+                        <div class="stats-grid">
+                            <a asp-page="/UserLeaveRequest" class="stat-card">
+                                <div class="stat-value">@Model.AvailableLeaveDays</div>
+                                <div class="stat-label">Available Leave Days</div>
+                            </a>
+                            <a asp-page="/UserLoanRequest" class="stat-card">
+                                <div class="stat-value">@Model.PendingTasks</div>
+                                <div class="stat-label">Pending Tasks</div>
+                            </a>
+                            <a asp-page="/UserProfile" class="stat-card">
+                                <div class="stat-value">@Model.DocumentUpdates</div>
+                                <div class="stat-label">Document Updates</div>
+                            </a>
+                        </div>
 
-                    <div class="activity-item">
-                        <div class="activity-title">Leave Request Approved</div>
-                        <div class="activity-description">Your leave request from May 15 to May 18 has been approved by HR Manager.</div>
-                        <div class="activity-time">2 hours ago</div>
-                    </div>
+                        <div class="activity-card">
+                            <h2>Recent Activities</h2>
 
-                    <div class="activity-item">
-                        <div class="activity-title">Salary Credited</div>
-                        <div class="activity-description">Your salary for April 2025 has been credited to your bank account.</div>
-                        <div class="activity-time">1 day ago</div>
-                    </div>
+                            <div class="activity-item">
+                                <div class="activity-title">Leave Request Approved</div>
+                                <div class="activity-description">Your leave request from May 15 to May 18 has been approved by HR Manager.</div>
+                                <div class="activity-time">2 hours ago</div>
+                            </div>
 
-                    <div class="activity-item">
-                        <div class="activity-title">Document Update Required</div>
-                        <div class="activity-description">Please update your address proof document as it has expired.</div>
-                        <div class="activity-time">2 days ago</div>
-                    </div>
+                            <div class="activity-item">
+                                <div class="activity-title">Salary Credited</div>
+                                <div class="activity-description">Your salary for April 2025 has been credited to your bank account.</div>
+                                <div class="activity-time">1 day ago</div>
+                            </div>
+
+                            <div class="activity-item">
+                                <div class="activity-title">Document Update Required</div>
+                                <div class="activity-description">Please update your address proof document as it has expired.</div>
+                                <div class="activity-time">2 days ago</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <aside class="side-stack">
+                        <div class="summary-card">
+                            <h3>Account Snapshot</h3>
+                            <div>Role: @Model.Role</div>
+                            <div class="summary-meta">
+                                <div class="summary-meta-item"><span>Leave Balance</span><strong>@Model.AvailableLeaveDays days</strong></div>
+                                <div class="summary-meta-item"><span>Pending Items</span><strong>@Model.PendingTasks</strong></div>
+                                <div class="summary-meta-item"><span>Profile Updates</span><strong>@Model.DocumentUpdates</strong></div>
+                            </div>
+                        </div>
+
+                        <div class="tip-card">
+                            <h4>Tip</h4>
+                            <p>Keep your profile details current to speed up approvals for leave and loan requests.</p>
+                        </div>
+
+                        <div class="tip-card">
+                            <h4>Need Action?</h4>
+                            <p>Use the quick actions above to file requests and monitor their status from this dashboard.</p>
+                        </div>
+                    </aside>
                 </div>
             </div>
         </main>
@@ -530,22 +764,15 @@
     <script>
         // Mobile sidebar toggle functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const sidebarToggle = document.createElement('button');
-            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
-            sidebarToggle.style.background = 'none';
-            sidebarToggle.style.border = 'none';
-            sidebarToggle.style.fontSize = '1.25rem';
-            sidebarToggle.style.cursor = 'pointer';
-
-            const topNavLeft = document.createElement('div');
-            topNavLeft.appendChild(sidebarToggle);
-            document.querySelector('.top-nav').prepend(topNavLeft);
+            const sidebarToggle = document.querySelector('.sidebar-toggle');
 
             const sidebar = document.querySelector('.sidebar');
 
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-            });
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('open');
+                });
+            }
 
             // Logout popup functionality
             const logoutButton = document.getElementById('logoutBtn');

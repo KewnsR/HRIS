@@ -30,9 +30,9 @@ public class AttendanceRecord
     public TimeSpan? LunchEndTime { get; set; }
 
     [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation property: each AttendanceRecord belongs to 1 Employee
     [ForeignKey("EmployeeID")]

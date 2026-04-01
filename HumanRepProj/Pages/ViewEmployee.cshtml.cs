@@ -1,5 +1,6 @@
 using HumanRepProj.Data;
 using HumanRepProj.Models;
+using HumanRepProj.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             if (id <= 0)
             {
                 return NotFound();

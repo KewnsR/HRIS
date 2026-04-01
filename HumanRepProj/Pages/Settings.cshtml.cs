@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using HumanRepProj.Security;
 using System.Threading.Tasks;
 
 namespace HumanRepProj.Pages
@@ -72,12 +73,25 @@ namespace HumanRepProj.Pages
         public string DashboardCustomization { get; set; }
 
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
+            return Page();
         }
 
         public IActionResult OnPost()
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             if (!ModelState.IsValid)
             {
                 return Page();

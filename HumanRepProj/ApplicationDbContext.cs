@@ -57,7 +57,7 @@ namespace HumanRepProj.Data
                 entity.Property(u => u.EmployeeID).HasColumnName("EmployeeID");
                 entity.Property(u => u.Username).IsRequired().HasMaxLength(50).HasColumnName("Username");
                 entity.Property(u => u.Password).IsRequired().HasMaxLength(255).HasColumnName("Password");
-                entity.Property(u => u.LastLogin).HasColumnType("datetime2").HasColumnName("LastLogin");
+                entity.Property(u => u.LastLogin).HasColumnType("timestamp with time zone").HasColumnName("LastLogin");
                 entity.Property(u => u.FailedAttempts).HasColumnName("FailedAttempts").HasDefaultValue(0);
                 entity.Property(u => u.IsLocked).HasColumnName("IsLocked").HasDefaultValue(false);
                 entity.Property(u => u.CreatedAt).HasColumnName("CreatedAt").HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -81,7 +81,7 @@ namespace HumanRepProj.Data
                 entity.Property(d => d.Name).IsRequired().HasColumnName("DepartmentName").HasMaxLength(100);
                 entity.Property(d => d.Description).HasMaxLength(500).HasColumnName("Description");
                 entity.Property(d => d.Performance).HasColumnType("decimal(18,2)").HasColumnName("Performance");
-                entity.Property(d => d.DateCreated).HasColumnType("datetime2").HasColumnName("DateCreated").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(d => d.DateCreated).HasColumnType("timestamp with time zone").HasColumnName("DateCreated").HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(d => d.Budget).HasColumnType("decimal(18,2)").HasColumnName("Budget");
                 entity.Property(d => d.Status).HasMaxLength(50).HasColumnName("Status").HasDefaultValue("Active");
                 entity.HasIndex(d => d.Name).IsUnique().HasDatabaseName("IX_Departments_Name");
@@ -127,8 +127,8 @@ namespace HumanRepProj.Data
                 entity.Property(e => e.ManagerID).HasColumnName("ManagerID").IsRequired(false);
 
                 // Timestamps
-                entity.Property(e => e.CreatedAt).HasColumnType("datetime2").HasColumnName("CreatedAt").HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.UpdatedAt).HasColumnType("datetime2").HasColumnName("UpdatedAt").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone").HasColumnName("CreatedAt").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasColumnType("timestamp with time zone").HasColumnName("UpdatedAt").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 // Relationships
                 entity.HasOne(e => e.Manager)
@@ -145,8 +145,7 @@ namespace HumanRepProj.Data
                 // Indexes
                 entity.HasIndex(e => e.Email)
                       .IsUnique()
-                      .HasDatabaseName("IX_Employees_Email")
-                        .HasFilter("Email IS NOT NULL");
+                        .HasDatabaseName("IX_Employees_Email");
 
                 entity.HasIndex(e => e.ManagerID)
                       .HasDatabaseName("IX_Employees_ManagerID");
@@ -173,8 +172,8 @@ namespace HumanRepProj.Data
                 entity.Property(a => a.LunchStartTime).HasColumnType("time").HasColumnName("LunchStartTime");
                 entity.Property(a => a.LunchEndTime).HasColumnType("time").HasColumnName("LunchEndTime");
 
-                entity.Property(a => a.CreatedAt).HasColumnType("datetime2").HasColumnName("CreatedAt").HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(a => a.UpdatedAt).HasColumnType("datetime2").HasColumnName("UpdatedAt").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(a => a.CreatedAt).HasColumnType("timestamp with time zone").HasColumnName("CreatedAt").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(a => a.UpdatedAt).HasColumnType("timestamp with time zone").HasColumnName("UpdatedAt").HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 entity.HasOne(a => a.Employee)
                        .WithMany(e => e.AttendanceRecords)

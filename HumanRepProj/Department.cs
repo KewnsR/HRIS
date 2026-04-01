@@ -22,7 +22,7 @@ namespace HumanRepProj.Models
         public decimal Performance { get; set; }
 
         [DataType(DataType.Date)]
-        public DateTime DateCreated { get; set; } = DateTime.Now;
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
         [Range(0, double.MaxValue, ErrorMessage = "Budget must be a positive value.")]
         public decimal Budget { get; set; }

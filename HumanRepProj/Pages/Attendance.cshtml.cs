@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using HumanRepProj.Data;
 using HumanRepProj.Models;
+using HumanRepProj.Security;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,15 +37,13 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnGetAsync()
         {
-            var userEmail = HttpContext.Session.GetString("Username");
-
-            if (string.IsNullOrEmpty(userEmail))
+            var guardResult = AdminSessionGuard.EnsureAdmin(this, _logger);
+            if (guardResult != null)
             {
-                _logger.LogWarning("Session expired or user not logged in.");
-                return RedirectToPage("/Login");
+                return guardResult;
             }
 
-            _logger.LogInformation($"User {userEmail} accessed the Attendance page.");
+            _logger.LogInformation("Admin user {Username} accessed the Attendance page.", AdminSessionGuard.GetUsername(HttpContext));
 
             var today = DateTime.Today;
 

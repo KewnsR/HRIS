@@ -39,23 +39,47 @@ namespace HumanRepProj.Pages
                 return Page();
             }
 
-            var normalizedUsername = LoginInput.Username.Trim().ToLower();
+            var normalizedUsernameOrEmail = LoginInput.Username.Trim().ToLower();
             var hashedInputPassword = HashPassword(LoginInput.Password);
             var user = await _context.ApplicationUsers
                 .Include(u => u.Employee)
-                .SingleOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
+                .SingleOrDefaultAsync(u =>
+                    u.Username.ToLower() == normalizedUsernameOrEmail ||
+                    (u.Employee != null && u.Employee.Email != null && u.Employee.Email.ToLower() == normalizedUsernameOrEmail));
 
-            if (user != null && user.Password == hashedInputPassword)
+            if (user != null)
             {
-                HttpContext.Session.SetString("UserName", user.Username);
-                HttpContext.Session.SetInt32("EmployeeID", user.EmployeeID);
-                HttpContext.Session.SetString("FullName", user.Employee?.FullName ?? user.Username);
+                var passwordMatchesHashed = user.Password == hashedInputPassword;
+                var passwordMatchesPlainText = user.Password == LoginInput.Password;
 
-                user.LastLogin = System.DateTime.UtcNow;
-                user.FailedAttempts = 0;
-                await _context.SaveChangesAsync();
+                if (passwordMatchesHashed || passwordMatchesPlainText)
+                {
+                    // Automatically migrate old plaintext passwords to hashed values after a successful login.
+                    if (passwordMatchesPlainText)
+                    {
+                        user.Password = hashedInputPassword;
+                    }
 
-                return RedirectToPage("/UserDashboard");
+                    if (string.Equals(user.Username, "admin", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        ErrorMessage = "Administrator account detected. Please use Admin Login.";
+                        return Page();
+                    }
+
+                    // Replace any existing session (including admin) with the current employee session.
+                    HttpContext.Session.Clear();
+
+                    HttpContext.Session.SetString("UserName", user.Username);
+                    HttpContext.Session.SetString("Username", user.Username);
+                    HttpContext.Session.SetInt32("EmployeeID", user.EmployeeID);
+                    HttpContext.Session.SetString("FullName", user.Employee?.FullName ?? user.Username);
+
+                    user.LastLogin = System.DateTime.UtcNow;
+                    user.FailedAttempts = 0;
+                    await _context.SaveChangesAsync();
+
+                    return RedirectToPage("/UserDashboard");
+                }
             }
 
             if (user != null)

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using HumanRepProj.Data;
 using HumanRepProj.Models;
+using HumanRepProj.Security;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,6 +17,36 @@ namespace HumanRepProj.Pages
     {
         private readonly ApplicationDbContext _context;
 
+        private static readonly Dictionary<string, DepartmentTemplateDefinition> TemplateDefinitions =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["it"] = new DepartmentTemplateDefinition
+                {
+                    Name = "IT Department",
+                    Description = "Handles systems, infrastructure, software support, and cybersecurity operations."
+                },
+                ["hr"] = new DepartmentTemplateDefinition
+                {
+                    Name = "Human Resources",
+                    Description = "Manages recruitment, employee records, performance processes, and workforce development."
+                },
+                ["finance"] = new DepartmentTemplateDefinition
+                {
+                    Name = "Finance",
+                    Description = "Responsible for budgeting, payroll oversight, reporting, and financial controls."
+                },
+                ["operations"] = new DepartmentTemplateDefinition
+                {
+                    Name = "Operations",
+                    Description = "Oversees day-to-day workflows, process execution, and service delivery."
+                },
+                ["sales"] = new DepartmentTemplateDefinition
+                {
+                    Name = "Sales",
+                    Description = "Drives revenue generation, client acquisition, and account relationship management."
+                }
+            };
+
         public AddDeptModel(ApplicationDbContext context)
         {
             _context = context;
@@ -24,67 +55,47 @@ namespace HumanRepProj.Pages
         [BindProperty]
         public InputModel Input { get; set; }
 
-        public SelectList Managers { get; set; }
+        public List<SelectListItem> DepartmentTemplates { get; set; } = new();
 
         public class InputModel
         {
+            public string? TemplateKey { get; set; }
+
             [Required]
             [StringLength(50, ErrorMessage = "Department name cannot exceed 50 characters.")]
             public string Name { get; set; }
 
             [StringLength(200, ErrorMessage = "Description cannot exceed 200 characters.")]
             public string Description { get; set; }
-
-            [Range(0, 100, ErrorMessage = "Performance must be between 0 and 100.")]
-            public decimal Performance { get; set; }
-
-            [Range(0, double.MaxValue, ErrorMessage = "Budget must be a positive number.")]
-            public decimal Budget { get; set; }
-
-            [DataType(DataType.Date)]
-            public DateTime DateCreated { get; set; } = DateTime.Now;
-
-            [Required]
-            public string Status { get; set; } = "Active";
-
-            public int? ManagerID { get; set; }
         }
 
-        public async Task<IActionResult> OnGetAsync()
+        public IActionResult OnGet()
         {
-            Input ??= new InputModel
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
             {
-                DateCreated = DateTime.Today,
-                Status = "Active"
-            };
+                return guardResult;
+            }
 
-            // Get all employees who could be managers
-            var employees = await _context.Employees
-                .Where(e => e.Status == "Active")
-                .OrderBy(e => e.LastName)
-                .ThenBy(e => e.FirstName)
-                .Select(e => new
-                {
-                    EmployeeID = e.EmployeeID,
-                    FullName = e.FirstName + " " + e.LastName
-                })
-                .ToListAsync();
-
-            Managers = new SelectList(employees, "EmployeeID", "FullName");
+            Input ??= new InputModel();
+            PopulateTemplates();
 
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            Input ??= new InputModel();
-            Input.Name = (Input.Name ?? string.Empty).Trim();
-            Input.Status = string.IsNullOrWhiteSpace(Input.Status) ? "Active" : Input.Status.Trim();
-
-            if (Input.DateCreated == default)
+            var guardResult = AdminSessionGuard.EnsureAdmin(this);
+            if (guardResult != null)
             {
-                Input.DateCreated = DateTime.Today;
+                return guardResult;
             }
+
+            Input ??= new InputModel();
+
+            ApplyTemplateValues();
+            Input.Name = (Input.Name ?? string.Empty).Trim();
+            Input.Description = (Input.Description ?? string.Empty).Trim();
 
             if (string.IsNullOrWhiteSpace(Input.Name))
             {
@@ -93,8 +104,7 @@ namespace HumanRepProj.Pages
 
             if (!ModelState.IsValid)
             {
-                // Reload the manager list if validation fails
-                await OnGetAsync();
+                OnGet();
                 return Page();
             }
 
@@ -104,7 +114,7 @@ namespace HumanRepProj.Pages
             if (duplicateNameExists)
             {
                 ModelState.AddModelError("Input.Name", "A department with this name already exists.");
-                await OnGetAsync();
+                OnGet();
                 return Page();
             }
 
@@ -112,11 +122,11 @@ namespace HumanRepProj.Pages
             {
                 Name = Input.Name,
                 Description = Input.Description,
-                Performance = Input.Performance,
-                Budget = Input.Budget,
-                Status = Input.Status,
-                DateCreated = Input.DateCreated,
-                ManagerID = Input.ManagerID
+                Performance = 0,
+                Budget = 0,
+                Status = "Active",
+                DateCreated = DateTime.UtcNow,
+                ManagerID = null
             };
 
             try
@@ -127,12 +137,40 @@ namespace HumanRepProj.Pages
             catch (DbUpdateException)
             {
                 ModelState.AddModelError(string.Empty, "Could not save the department. Please verify the values and try again.");
-                await OnGetAsync();
+                OnGet();
                 return Page();
             }
 
             TempData["SuccessMessage"] = "Department created successfully.";
             return RedirectToPage("/Departments");
+        }
+
+        private void PopulateTemplates()
+        {
+            DepartmentTemplates = TemplateDefinitions
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Key,
+                    Text = t.Value.Name,
+                    Selected = string.Equals(Input?.TemplateKey, t.Key, StringComparison.OrdinalIgnoreCase)
+                })
+                .ToList();
+        }
+
+        private void ApplyTemplateValues()
+        {
+            if (!string.IsNullOrWhiteSpace(Input.TemplateKey) &&
+                TemplateDefinitions.TryGetValue(Input.TemplateKey, out var template))
+            {
+                Input.Name = template.Name;
+                Input.Description = template.Description;
+            }
+        }
+
+        public class DepartmentTemplateDefinition
+        {
+            public string Name { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
         }
     }
 }

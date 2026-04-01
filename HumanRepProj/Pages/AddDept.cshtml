@@ -14,16 +14,23 @@
                     <hr />
 
                     <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
+                                <label asp-for="Input.TemplateKey" class="form-label">Department Template</label>
+                                <select asp-for="Input.TemplateKey" id="departmentTemplate" class="form-select" asp-items="Model.DepartmentTemplates">
+                                    <option value="">-- Select Template (auto-fill name and description) --</option>
+                                </select>
+                                <small class="text-muted">Use a template to auto-fill department name and description.</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
                                 <label asp-for="Input.Name" class="form-label">Department Name</label>
                                 <input asp-for="Input.Name" class="form-control" />
                                 <span asp-validation-for="Input.Name" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Input.Performance" class="form-label">Performance (%)</label>
-                                <input asp-for="Input.Performance" class="form-control" type="number" step="0.01" />
-                                <span asp-validation-for="Input.Performance" class="text-danger"></span>
                             </div>
                         </div>
 
@@ -35,40 +42,9 @@
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="Input.Budget" class="form-label">Budget</label>
-                                <input asp-for="Input.Budget" class="form-control" type="number" step="0.01" />
-                                <span asp-validation-for="Input.Budget" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Input.DateCreated" class="form-label">Date Created</label>
-                                <input asp-for="Input.DateCreated" class="form-control" type="date" />
-                                <span asp-validation-for="Input.DateCreated" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="Input.Status" class="form-label">Status</label>
-                                <select asp-for="Input.Status" class="form-select">
-                                    <option value="Active">Active</option>
-                                    <option value="Inactive">Inactive</option>
-                                </select>
-                                <span asp-validation-for="Input.Status" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Input.ManagerID" class="form-label">Manager</label>
-                                <select asp-for="Input.ManagerID" class="form-select" asp-items="Model.Managers">
-                                    <option value="">-- Select Manager --</option>
-                                </select>
-                                <span asp-validation-for="Input.ManagerID" class="text-danger"></span>
-                            </div>
-                        </div>
-
                         <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-dark">Create Department</button>
-                            <a asp-page="/Departments" class="btn btn-secondary">Cancel</a>
+                            <a asp-page="/Departments" class="btn btn-outline">Back to Departments</a>
                         </div>
                     </form>
                 </div>
@@ -79,4 +55,49 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const templateSelect = document.getElementById('departmentTemplate');
+            const nameInput = document.getElementById('Input_Name');
+            const descInput = document.getElementById('Input_Description');
+
+            if (!templateSelect || !nameInput || !descInput) {
+                return;
+            }
+
+            const templates = {
+                it: {
+                    name: 'IT Department',
+                    description: 'Handles systems, infrastructure, software support, and cybersecurity operations.'
+                },
+                hr: {
+                    name: 'Human Resources',
+                    description: 'Manages recruitment, employee records, performance processes, and workforce development.'
+                },
+                finance: {
+                    name: 'Finance',
+                    description: 'Responsible for budgeting, payroll oversight, reporting, and financial controls.'
+                },
+                operations: {
+                    name: 'Operations',
+                    description: 'Oversees day-to-day workflows, process execution, and service delivery.'
+                },
+                sales: {
+                    name: 'Sales',
+                    description: 'Drives revenue generation, client acquisition, and account relationship management.'
+                }
+            };
+
+            templateSelect.addEventListener('change', function () {
+                const key = (templateSelect.value || '').toLowerCase();
+                const selected = templates[key];
+                if (!selected) {
+                    return;
+                }
+
+                nameInput.value = selected.name;
+                descInput.value = selected.description;
+            });
+        })();
+    </script>
 }

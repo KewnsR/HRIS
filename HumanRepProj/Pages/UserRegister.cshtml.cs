@@ -31,13 +31,26 @@ namespace HumanRepProj.Pages
         [TempData]
         public string? ErrorMessage { get; set; }
 
-        public async Task OnGetAsync()
+        public async Task<IActionResult> OnGetAsync()
         {
+            if (!IsCurrentUserAdmin())
+            {
+                TempData["ErrorMessage"] = "Only administrators can create employee accounts.";
+                return RedirectToPage("/UserLogin");
+            }
+
             await LoadDepartmentsAsync();
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (!IsCurrentUserAdmin())
+            {
+                TempData["ErrorMessage"] = "Only administrators can create employee accounts.";
+                return RedirectToPage("/UserLogin");
+            }
+
             await LoadDepartmentsAsync();
 
             if (!ModelState.IsValid)
@@ -115,6 +128,15 @@ namespace HumanRepProj.Pages
                     Text = d.Name
                 })
                 .ToListAsync();
+        }
+
+        private bool IsCurrentUserAdmin()
+        {
+            var username = HttpContext.Session.GetString("Username")
+                ?? HttpContext.Session.GetString("UserName");
+
+            return !string.IsNullOrWhiteSpace(username)
+                && string.Equals(username, "admin", StringComparison.OrdinalIgnoreCase);
         }
 
             private static string HashPassword(string plainTextPassword)

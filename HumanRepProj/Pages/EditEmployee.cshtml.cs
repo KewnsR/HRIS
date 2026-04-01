@@ -1,5 +1,6 @@
 using HumanRepProj.Data;
 using HumanRepProj.Models;
+using HumanRepProj.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -54,6 +55,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this, _logger);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             try
             {
                 Employee = await _context.Employees
@@ -87,6 +94,12 @@ namespace HumanRepProj.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            var guardResult = AdminSessionGuard.EnsureAdmin(this, _logger);
+            if (guardResult != null)
+            {
+                return guardResult;
+            }
+
             try
             {
                 // Remove unnecessary model state validation
@@ -136,7 +149,7 @@ namespace HumanRepProj.Pages
                 existingEmployee.EmploymentType = Employee.EmploymentType;
                 existingEmployee.Status = Employee.Status;
                 existingEmployee.IsManager = Employee.IsManager;
-                existingEmployee.UpdatedAt = DateTime.Now;
+                existingEmployee.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
 

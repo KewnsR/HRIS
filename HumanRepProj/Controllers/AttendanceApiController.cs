@@ -44,11 +44,11 @@ namespace HumanRepProj.Controllers
             var attendance = new AttendanceRecord
             {
                 EmployeeID = dto.EmployeeId,
-                AttendanceDate = DateTime.Today,
+                AttendanceDate = DateTime.UtcNow.Date,
                 Status = "Present",
-                TimeIn = DateTime.Now.TimeOfDay,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                TimeIn = DateTime.UtcNow.TimeOfDay,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             _context.AttendanceRecords.Add(attendance);

@@ -17,6 +17,16 @@
                         <input type="hidden" asp-for="Input.DepartmentID" />
 
                         <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label asp-for="Input.TemplateKey" class="form-label">Department Template</label>
+                                <select asp-for="Input.TemplateKey" id="departmentTemplate" class="form-select" asp-items="Model.DepartmentTemplates">
+                                    <option value="">-- Select Template (auto-fill name and description) --</option>
+                                </select>
+                                <small class="text-muted">Choosing a template fills Department Name and Description automatically.</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
                             <div class="col-md-6">
                                 <label asp-for="Input.Name" class="form-label">Department Name</label>
                                 <input asp-for="Input.Name" class="form-control" />
@@ -81,4 +91,50 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const templateSelect = document.getElementById('departmentTemplate');
+            const nameInput = document.getElementById('Input_Name');
+            const descInput = document.getElementById('Input_Description');
+
+            if (!templateSelect || !nameInput || !descInput) {
+                return;
+            }
+
+            const templates = {
+                it: {
+                    name: 'IT Department',
+                    description: 'Handles systems, infrastructure, software support, and cybersecurity operations.'
+                },
+                hr: {
+                    name: 'Human Resources',
+                    description: 'Manages recruitment, employee records, performance processes, and workforce development.'
+                },
+                finance: {
+                    name: 'Finance',
+                    description: 'Responsible for budgeting, payroll oversight, reporting, and financial controls.'
+                },
+                operations: {
+                    name: 'Operations',
+                    description: 'Oversees day-to-day workflows, process execution, and service delivery.'
+                },
+                sales: {
+                    name: 'Sales',
+                    description: 'Drives revenue generation, client acquisition, and account relationship management.'
+                }
+            };
+
+            templateSelect.addEventListener('change', function () {
+                const selectedKey = (templateSelect.value || '').toLowerCase();
+                const selectedTemplate = templates[selectedKey];
+
+                if (!selectedTemplate) {
+                    return;
+                }
+
+                nameInput.value = selectedTemplate.name;
+                descInput.value = selectedTemplate.description;
+            });
+        })();
+    </script>
 }

@@ -123,12 +123,15 @@
             </button>
         </form>
 
-        <!-- Add Employee Button -->
-        <form method="post">
-            <button type="submit" asp-page-handler="AddEmployee" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> Add Employee
-            </button>
-        </form>
+        @if (Model.IsAdmin)
+        {
+            <!-- Add Employee Button -->
+            <form method="post">
+                <button type="submit" asp-page-handler="AddEmployee" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> Add Employee
+                </button>
+            </form>
+        }
 
         <form method="post" data-confirm="This will delete placeholder/test employee records. Continue?">
             <button type="submit" asp-page-handler="DeletePlaceholderEmployees" class="btn btn-outline-danger">
@@ -143,10 +146,10 @@
         <h5 class="mb-0">Employee Records</h5>
     </div>
     <div class="card-body">
-        @if (TempData["Message"] != null)
+        @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                @TempData["Message"]
+                @Model.StatusMessage
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
@@ -209,6 +212,17 @@
                                                     <i class="bi bi-file-earmark-text me-2"></i>Documents
                                                 </a>
                                             </li>
+                                            @if (Model.IsAdmin)
+                                            {
+                                                <li>
+                                                    <form method="post" data-confirm="Reset this employee's password to Password123!?">
+                                                        <input type="hidden" name="id" value="@employee.EmployeeID" />
+                                                        <button type="submit" asp-page-handler="ResetPassword" class="dropdown-item text-warning">
+                                                            <i class="bi bi-key me-2"></i>Reset Password
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            }
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <form method="post" data-confirm="Are you sure you want to change this employee's status?">
